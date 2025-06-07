@@ -1,8 +1,17 @@
 # health_records/serializers.py
 
 from rest_framework import serializers
-from .models import HealthRecord
+from .models import HealthRecord, Tag
 # from django.contrib.auth.models import User # Userモデルを直接参照する場合に備えてコメントアウト
+
+# --- ★ここから新しい TagSerializer を追加 ---
+class TagSerializer(serializers.ModelSerializer):
+    """
+    Tagモデル用のシリアライザー
+    """
+    class Meta:
+        model = Tag
+        fields = ['id', 'name']
 
 class HealthRecordSerializer(serializers.ModelSerializer):
     # user フィールドは、APIレスポンスでユーザー名を表示するようにカスタマイズする例
@@ -10,6 +19,17 @@ class HealthRecordSerializer(serializers.ModelSerializer):
     # read_only=True なので、このシリアライザー経由でuserフィールドを書き換えることはできません。
     # (ユーザーの割り当てはビュー側で行います)
     user_username = serializers.CharField(source='user.username', read_only=True)
+
+        # ↓ ★ここからタグ用の設定を追加・変更します
+    tags = serializers.SlugRelatedField(
+        many=True,                       # 複数のタグを扱えるようにする
+        slug_field='name',                 # タグをIDではなく、'name'フィールド（タグ名）で表現する
+        queryset=Tag.objects.all(),        # 有効なタグのリスト（書き込み時の検証に使う）
+        required=False                     # タグの指定は任意項目にする
+    )
+    # ↑ ★ここまで
+
+
 
     class Meta:
         model = HealthRecord  # どのモデルをベースにするか指定
@@ -23,7 +43,8 @@ class HealthRecordSerializer(serializers.ModelSerializer):
             'value_numeric',
             'value_text',
             'recorded_at',
-            'notes'
+            'notes',
+            'tags',  # タグを追加
         ]
         # 以下のフィールドは、API経由でクライアントから直接指定させず、
         # ビューで自動的に設定したり、モデルで自動設定されたりするものです。

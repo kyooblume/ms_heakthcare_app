@@ -6,6 +6,17 @@ from django.db import models
 from django.db import models
 from django.conf import settings # settings.AUTH_USER_MODEL を使うため
 
+# タグモデルを定義
+class Tag(models.Model):
+    """
+    健康記録に付けるタグのモデル
+    """
+    name = models.CharField(max_length=50, unique=True, verbose_name='タグ名')
+
+    def __str__(self):
+        return self.name
+    
+
 class HealthRecord(models.Model):
     # 記録の種類を定義 (選択肢として利用)
     RECORD_TYPE_CHOICES = [
@@ -57,7 +68,8 @@ class HealthRecord(models.Model):
     # default=timezone.now や、入力フィールドにする必要があります。
     # 今回はシンプルに自動記録とします。
 
-    # メモ (任意)
+   
+    tags = models.ManyToManyField(Tag, blank=True, verbose_name='タグ')
     notes = models.TextField(blank=True, null=True, verbose_name='メモ')
 
     def __str__(self):
@@ -72,11 +84,3 @@ class HealthRecord(models.Model):
 
 
 
-class Tag(models.Model):
-    """
-    健康記録に付けるタグのモデル
-    """
-    name = models.CharField(max_length=50, unique=True, verbose_name='タグ名')
-
-    def __str__(self):
-        return self.name

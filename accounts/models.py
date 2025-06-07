@@ -98,3 +98,41 @@ def create_user_profile(sender, instance, created, **kwargs):
     """
     if created: # 新規作成の場合のみ
         UserProfile.objects.create(user=instance)
+
+
+
+
+# --- ★ここから新しい UserDevice モデルを追加 ---
+class UserDevice(models.Model):
+    """
+    ユーザーのデバイス情報を保存するモデル
+    """
+    # どのユーザーのデバイスか
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='devices')
+
+    # デバイストークン (非常に長くなる可能性があるためTextField)
+    # 同じトークンが複数登録されないように unique=True
+    device_token = models.TextField(unique=True, verbose_name='デバイストークン')
+
+    # プラットフォーム (iOSかAndroidか)
+    PLATFORM_CHOICES = [
+        ('ios', 'iOS'),
+        ('android', 'Android'),
+    ]
+    platform = models.CharField(
+        max_length=10, 
+        choices=PLATFORM_CHOICES, 
+        verbose_name='プラットフォーム'
+    )
+
+    is_active = models.BooleanField(default=True, verbose_name='有効フラグ')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='作成日時')
+    updated_at = models.DateTimeField(auto_now=True, verbose_name='更新日時')
+
+    class Meta:
+        verbose_name = 'ユーザーデバイス'
+        verbose_name_plural = 'ユーザーデバイス'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username}'s {self.get_platform_display()} Device"
