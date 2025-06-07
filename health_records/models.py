@@ -68,3 +68,15 @@ class HealthRecord(models.Model):
         ordering = ['-recorded_at'] # 新しい記録から順に表示する
         verbose_name = '健康記録'
         verbose_name_plural = '健康記録'
+
+
+
+
+class Tag(models.Model):
+    """
+    健康記録に付けるタグのモデル
+    """
+    name = models.CharField(max_length=50, unique=True, verbose_name='タグ名')
+
+    def __str__(self):
+        return self.name
