@@ -14,9 +14,25 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+
+# backend_project/urls.py
+
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 urlpatterns = [
+    # 管理画面用のURL
     path('admin/', admin.site.urls),
+
+    # 私たちが作成したAPI用のURL
+    path('api/auth/', include('accounts.urls', namespace='accounts')),
+    path('api/health/', include('health_records.urls', namespace='health_records')),
+
+    # トークン認証用のURL
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]

@@ -31,14 +31,18 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'django_extensions',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',  # ← これを追加
+    'rest_framework',
+    'rest_framework_simplejwt',  # ← これを追加
     'accounts',  # ← これを追加  
+    'health_records',  # 健康記録アプリを追加
+    'django_filters',
 ]
 
 MIDDLEWARE = [
@@ -122,3 +126,27 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_FILTER_BACKENDS': [ # ← このキーと値を追加
+        'django_filters.rest_framework.DjangoFilterBackend'
+    # もし他のデフォルト設定 (例: DEFAULT_PERMISSION_CLASSES) があれば、
+    # それもこの辞書の中に一緒に記述します。
+    # 例:
+    # 'DEFAULT_PERMISSION_CLASSES': [
+    #     'rest_framework.permissions.IsAuthenticated', # 全てのAPIにデフォルトで認証を要求する場合
+    ]
+}
+
+# 例: settings.py の末尾に追加
+# from datetime import timedelta
+#
+# SIMPLE_JWT = {
+#     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60), # アクセストークンの有効期限 (例: 60分)
+#     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),    # リフレッシュトークンの有効期限 (例: 1日)
+#     # 他にも様々な設定があります
+# }
