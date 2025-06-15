@@ -3,8 +3,9 @@ from django.shortcuts import render
 # Create your views here.
 # health_records/views.py
 
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated # 認証されたユーザーのみアクセス許可
+from rest_framework.response import Response
 from .models import HealthRecord
 from .serializers import HealthRecordSerializer
 from rest_framework.permissions import AllowAny, IsAuthenticated # AllowAny を追加 (IsAuthenticated も念のため一緒に)
@@ -14,6 +15,7 @@ from rest_framework import status
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Avg, Sum, Max, Min # 集計機能を使うためにインポート
+
 
 class HealthRecordViewSet(viewsets.ModelViewSet):
     """
@@ -48,6 +50,36 @@ class HealthRecordViewSet(viewsets.ModelViewSet):
         これにより、クライアントはuserフィールドをリクエストに含める必要がなくなります。
         """
         serializer.save(user=self.request.user)
+
+
+
+    def create(self, request, *args, **kwargs):
+        # 送られてきたデータをシリアライザーで検証
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # 検証済みデータから必要な情報を取り出す
+        record_type = serializer.validated_data.get('record_type')
+        # 日付単位で重複をチェックするため、今日の日付を取得
+        # (より高度にするなら、リクエストから日付を受け取ることも可能)
+        today = timezone.now().date()
+
+        # "もし今日、同じ種類の記録が既にあれば更新、なければ新規作成" を行う
+        record, created = HealthRecord.objects.update_or_create(
+            user=request.user,
+            record_type=record_type,
+            recorded_at__date=today, # recorded_atの日付部分が今日のもの、という条件
+            # 存在しなかった場合に、新しいレコードに設定される値
+            defaults=serializer.validated_data
+        )
+
+        # 作成または更新されたレコードのデータを、改めてシリアライザーで整形
+        response_serializer = self.get_serializer(record)
+
+        # 新規作成なら 201 Created、更新なら 200 OK を返す
+        status_code = status.HTTP_201_CREATED if created else status.HTTP_200_OK
+
+        return Response(response_serializer.data, status=status_code)
 
 
 

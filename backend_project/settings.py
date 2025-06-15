@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -39,10 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'rest_framework_simplejwt',  # ← これを追加
-    'accounts',  # ← これを追加  
-    'health_records',  # 健康記録アプリを追加
+    'rest_framework_simplejwt',  
     'django_filters',
+    'accounts', 
+    'health_records',  
+    'meals',
 ]
 
 MIDDLEWARE = [
@@ -150,3 +151,9 @@ REST_FRAMEWORK = {
 #     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),    # リフレッシュトークンの有効期限 (例: 1日)
 #     # 他にも様々な設定があります
 # }
+
+# backend_project/settings.py
+# ...
+GEMINI_API_KEY = os.environ.get('GEMINI_API_KEY')
+OPENAI_API_KEY = os.environ.get('OPENAI_API_KEY') # ← これを追加
+# ...
