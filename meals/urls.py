@@ -1,16 +1,15 @@
 # meals/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import MealLogViewSet
+from .views import MealLogViewSet, FoodMasterViewSet # ← FoodMasterViewSet をインポートに追加
 
-# ルーターを初期化
 router = DefaultRouter()
-# 'logs' というURLで MealLogViewSet を登録
 router.register(r'logs', MealLogViewSet, basename='meallog')
+router.register(r'foods', FoodMasterViewSet, basename='foodmaster') # ← ★この行を追加
 
 app_name = 'meals'
 
 urlpatterns = [
-    # ルーターが自動生成したURLを urlpatterns に含める
     path('', include(router.urls)),
 ]
+
