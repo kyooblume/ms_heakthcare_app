@@ -2,7 +2,6 @@
 from rest_framework import serializers
 from .models import MealLog, FoodMaster,MealComponent
 
-
 class FoodMasterSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodMaster

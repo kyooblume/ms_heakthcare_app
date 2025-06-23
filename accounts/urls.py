@@ -2,7 +2,7 @@
 
 from django.urls import path, include # ← include をインポート
 from rest_framework.routers import DefaultRouter # ← ルーターをインポート
-from .views import UserRegistrationView, UserProfileView, UserDeviceViewSet, PasswordChangeView
+from .views import UserRegistrationView, UserProfileView, UserDeviceViewSet, PasswordChangeView, RecommendedIntakeView
 app_name = 'accounts'
 
 # --- ルーターの設定 ---
@@ -17,6 +17,8 @@ urlpatterns = [
     path('register/', UserRegistrationView.as_view(), name='user-register'),
     path('profile/', UserProfileView.as_view(), name='user-profile'),
     path('change-password/', PasswordChangeView.as_view(), name='change-password'),
+    path('profile/calculate-targets/', RecommendedIntakeView.as_view(), name='calculate-targets'),
+    
     # ★ルーターが自動生成したURLを、この場所に追加
     path('', include(router.urls)),
 ]

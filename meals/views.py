@@ -1,10 +1,21 @@
 # meals/views.py
-from rest_framework import viewsets, filters # ← filters をインポートに追加
+
+from django.shortcuts import render # これは元々あるかもしれません
+from rest_framework import viewsets, filters
 from rest_framework.permissions import IsAuthenticated
-from .models import MealLog, FoodMaster # ← FoodMaster をインポートに追加
-from .serializers import MealLogSerializer, FoodMasterSerializer # ← FoodMasterSerializer をインポートに追加
+from .models import MealLog, FoodMaster
+from .serializers import MealLogSerializer, FoodMasterSerializer
+
+# --- 新しいレポート機能で使うインポート文 ---
+from rest_framework.views import APIView
+from rest_framework.response import Response # ← ★この行を追加・確認してください
+from rest_framework import status
+from datetime import datetime
+from django.utils import timezone
+from django.db.models import Sum, Avg, Max, Min
 
 
+# ... (これ以降に、FoodMasterViewSet, MealLogViewSet, DailyNutritionReportView などのクラス定義) ...
 # --- ★ここから新しい FoodMasterViewSet を追加 ---
 class FoodMasterViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -37,3 +48,46 @@ class MealLogViewSet(viewsets.ModelViewSet):
         新しい食事記録を作成する際に、現在のユーザーを自動的に紐付ける。
         """
         serializer.save(user=self.request.user)
+
+
+  
+
+# --- ★ここから新しいビューを追加 ---
+class DailyNutritionReportView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, date_str):
+        try:
+            # URLから受け取った日付文字列を日付オブジェクトに変換
+            target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return Response({"error": "無効な日付形式です。YYYY-MM-DDで指定してください。"}, status=400)
+
+        user = request.user
+        profile = user.profile
+
+        # その日の食事記録を取得
+        meal_logs = MealLog.objects.filter(user=user, eaten_at__date=target_date)
+
+        # 栄養素の合計を計算
+        actual_calories = 0
+        actual_protein = 0
+        # ... (他の栄養素も同様に合計)
+        for log in meal_logs:
+            for component in log.components.all():
+                # 食べた量(g)に応じて栄養素を計算
+                ratio = component.quantity / 100.0
+                actual_calories += component.food.calories_per_100g * ratio
+                actual_protein += component.food.protein_per_100g * ratio
+                # ...
+
+        # レスポンスデータを作成
+        response_data = {
+            "date": target_date,
+            "summary": {
+                "calories": {"target": profile.target_calories, "actual": round(actual_calories), "balance": round(actual_calories - (profile.target_calories or 0))},
+                "protein": {"target": profile.target_protein, "actual": round(actual_protein, 1), "balance": round(actual_protein - (profile.target_protein or 0), 1)},
+                # ...
+            }
+        }
+        return Response(response_data)

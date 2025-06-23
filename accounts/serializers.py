@@ -69,7 +69,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'date_of_birth', 
             'gender', 
             'target_weight', 
-            'target_steps_per_day'
+            'target_steps_per_day',
+            'target_calories', 
+            'target_protein', 
+            'target_fat', 
+            'target_carbohydrate',
         ]
 
 
