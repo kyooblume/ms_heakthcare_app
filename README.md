@@ -19,6 +19,7 @@
 * **認証:** Simple JWT (JSON Web Token)
 * **データベース:** SQLite (開発用)
 
+
 ---
 
 ## セットアップ手順
@@ -40,17 +41,23 @@
     pip install -r requirements.txt
     ```
 
-4.  **データベースの初期化:**
+4.  **`.env`ファイルの作成とAPIキーの設定:**
+    本プロジェクトは、チャット機能でGemini APIを使用します。プロジェクトのルートディレクトリに `.env` ファイルを新規作成し、ご自身のAPIキーを記述してください。
+    ```
+    GEMINI_API_KEY="ここにあなたのAPIキーを貼り付け"
+    ```
+
+5.  **データベースの初期化:**
     ```bash
     python manage.py migrate
     ```
 
-5.  **管理者ユーザーの作成:**
+6.  **管理者ユーザーの作成:**
     ```bash
     python manage.py createsuperuser
     ```
 
-6.  **開発サーバーの起動:**
+7.  **開発サーバーの起動:**
     ```bash
     python manage.py runserver
     ```
