@@ -80,6 +80,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'big5_extraversion',
             'big5_agreeableness',
             'big5_neuroticism',
+            'onboarding_complete',
         ]
 
 

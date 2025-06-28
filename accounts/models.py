@@ -2,10 +2,11 @@ from django.db import models
 from django.conf import settings # settings.AUTH_USER_MODEL を使うため
 # from django.contrib.auth.models import User # もし標準Userモデルを直接参照する場合
 
+
 class UserProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
-    # user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     date_of_birth = models.DateField(null=True, blank=True, verbose_name='生年月日')
+    
     GENDER_CHOICES = [
         ('male', '男性'),
         ('female', '女性'),
@@ -14,24 +15,10 @@ class UserProfile(models.Model):
     ]
     gender = models.CharField(max_length=20, choices=GENDER_CHOICES, null=True, blank=True, verbose_name='性別')
     profile_picture_url = models.URLField(max_length=255, null=True, blank=True, verbose_name='プロフィール画像URL')
+    
+    # --- 身体情報 ---
     height_cm = models.FloatField(null=True, blank=True, verbose_name='身長 (cm)')
-
-        # --- Big Five用のフィールド ---
-    big5_openness = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name='ビッグファイブ：開放性')
-    big5_conscientiousness = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name='ビッグファイブ：誠実性')
-    big5_extraversion = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name='ビッグファイブ：外向性')
-    big5_agreeableness = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name='ビッグファイブ：協調性')
-    big5_neuroticism = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name='ビッグファイブ：神経症的傾向')
-    # ...
-    # その他、目標設定などアプリ特有のユーザー情報を追加
-    target_weight = models.FloatField(null=True, blank=True, verbose_name='目標体重 (kg)')
-    target_steps_per_day = models.PositiveIntegerField(null=True, blank=True, verbose_name='目標歩数/日')
-    target_calories = models.PositiveIntegerField(null=True, blank=True, verbose_name='目標カロリー (kcal)')
-    target_protein = models.FloatField(null=True, blank=True, verbose_name='目標タンパク質 (g)')
-    target_fat = models.FloatField(null=True, blank=True, verbose_name='目標脂質 (g)')
-    target_carbohydrate = models.FloatField(null=True, blank=True, verbose_name='目標炭水化物 (g)')
-   
-        # --- ★ここから新しいフィールドを追加 ---
+    
     ACTIVITY_LEVEL_CHOICES = [
         (1.2,   '低い (ほとんど運動しない)'),
         (1.375, '普通 (週に1-3回程度の運動)'),
@@ -44,6 +31,25 @@ class UserProfile(models.Model):
         default=1.375, # デフォルト値を「普通」に設定
         verbose_name='身体活動レベル'
     )
+    
+    # --- 目標設定 ---
+    target_weight = models.FloatField(null=True, blank=True, verbose_name='目標体重 (kg)')
+    target_steps_per_day = models.PositiveIntegerField(null=True, blank=True, verbose_name='目標歩数/日')
+    target_calories = models.PositiveIntegerField(null=True, blank=True, verbose_name='目標カロリー (kcal)')
+    target_protein = models.FloatField(null=True, blank=True, verbose_name='目標タンパク質 (g)')
+    target_fat = models.FloatField(null=True, blank=True, verbose_name='目標脂質 (g)')
+    target_carbohydrate = models.FloatField(null=True, blank=True, verbose_name='目標炭水化物 (g)')
+    
+    # --- Big Five用のフィールド ---
+    big5_openness = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name='ビッグファイブ：開放性')
+    big5_conscientiousness = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name='ビッグファイブ：誠実性')
+    big5_extraversion = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name='ビッグファイブ：外向性')
+    big5_agreeableness = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name='ビッグファイブ：協調性')
+    big5_neuroticism = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name='ビッグファイブ：神経症的傾向')
+    
+    # --- アプリの状態管理 ---
+    onboarding_complete = models.BooleanField(default=False, verbose_name='初期設定完了フラグ')
+
     def __str__(self):
         return f"{self.user.username}'s Profile"
     

@@ -3,8 +3,6 @@ from django.shortcuts import render
 # Create your views here.
 from django.contrib.auth.models import User # Django標準のUserモデル
 from rest_framework import generics
-from rest_framework.permissions import AllowAny # 認証なしでアクセス許可
-from .serializers import UserRegistrationSerializer # 先ほど作成したシリアライザーをインポート
 from rest_framework.permissions import AllowAny, IsAuthenticated 
 from .serializers import UserRegistrationSerializer, UserProfileSerializer
 from rest_framework import viewsets
@@ -14,7 +12,14 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .serializers import PasswordChangeSerializer
+from rest_framework.views import APIView
+# ↓ 睡眠アンケートのモデルをインポート
+from health_records.models import SleepChronotypeSurvey 
 # from django.contrib.auth.models import User # 既存のビューでインポート済みのはず
+# --- ★ここを修正 ---
+# UserProfileモデルと、対応するシリアライザーをインポートします
+from .models import UserProfile
+from .serializers import UserProfileSerializer
 
 class UserRegistrationView(generics.CreateAPIView):
     """
@@ -34,13 +39,32 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated] # 認証されたユーザーのみアクセス可能
 
-    def get_object(self):
-        # URLにIDを含める代わりに、リクエストしてきたユーザーのプロフィールを返す
-        # self.request.user で現在ログインしているユーザーが取得できる
-        # .profile は、UserProfileモデルの related_name='profile' で設定したもの
-        return self.request.user.profile
-    
 
+    
+    def get_object(self):
+        # ユーザーに紐づくプロフィールを取得、なければ作成
+        profile, created = UserProfile.objects.get_or_create(user=self.request.user)
+        return profile
+
+    def partial_update(self, request, *args, **kwargs):
+        # PATCHリクエスト（部分更新）の処理
+        instance = self.get_object()
+        
+        # --- ★ここから修正 ---
+        # Big Fiveの回答がすべて送られてきたかチェック
+        big5_fields = ['big5_openness', 'big5_conscientiousness', 'big5_extraversion', 'big5_agreeableness', 'big5_neuroticism']
+        
+        # もしリクエストデータにBig Fiveの必須項目がすべて含まれていたら、
+        # オンボーディング完了とみなして、リクエストデータにフラグを追加する
+        if all(field in request.data for field in big5_fields):
+            request.data['onboarding_complete'] = True
+        # --- ★ここまで修正 ---
+
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response(serializer.data)
 
 # --- ★ここから新しい UserDeviceViewSet を追加 ---
 class UserDeviceViewSet(viewsets.ModelViewSet):
@@ -144,3 +168,30 @@ class RecommendedIntakeView(APIView):
         }
         
         return Response(response_data)
+    
+
+class UserOnboardingStatusView(APIView):
+    """
+    ユーザーのオンボーディングと各アンケートの回答状況を返すビュー。
+    フロントエンドは、このAPIの結果を見て次に表示する画面を判断する。
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        # get_or_createを使って、プロフィールが存在しない場合でもエラーにならないようにする
+        profile, created = UserProfile.objects.get_or_create(user=user)
+
+        # 睡眠アンケートに回答済みかチェック
+        sleep_survey_completed = SleepChronotypeSurvey.objects.filter(user=user).exists()
+
+        # big5_opennessが空(None)かどうかで、BigFiveに回答済みか判断
+        big5_survey_completed = profile.big5_openness is not None
+
+        response_data = {
+            'onboarding_completed': profile.onboarding_complete,
+            'needs_big5_survey': not big5_survey_completed,
+            'needs_sleep_survey': not sleep_survey_completed
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
