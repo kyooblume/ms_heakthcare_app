@@ -3,6 +3,24 @@ from django.db import models
 from django.conf import settings
 from django.utils import timezone
 
+
+class Meal(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='ユーザー')
+    MEAL_TYPE_CHOICES = [
+        ('breakfast', '朝食'),
+        ('lunch', '昼食'),
+        ('dinner', '夕食'),
+        ('snack', '間食'),
+    ]
+    meal_type = models.CharField(max_length=10, choices=MEAL_TYPE_CHOICES, verbose_name='食事タイプ')
+    notes = models.TextField(blank=True, verbose_name='メモ')
+    # Django 5.0以降では default=timezone.now の代わりに、
+    # auto_now_add=True を使うのが一般的ですが、ここでは既存の構造を尊重します。
+    recorded_at = models.DateTimeField(default=timezone.now, verbose_name='食事日時')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.get_meal_type_display()} at {self.recorded_at.strftime('%Y-%m-%d %H:%M')}"
+
 # meals/models.py の FoodMaster モデル
 class FoodMaster(models.Model):
     name = models.CharField(max_length=100, unique=True, verbose_name='食品名')
@@ -68,3 +86,23 @@ class MealComponent(models.Model):
 
     def __str__(self):
         return f"{self.food.name} - {self.quantity}g"
+    
+
+class MealItem(models.Model):
+    meal = models.ForeignKey(Meal, on_delete=models.CASCADE, related_name='items', verbose_name='食事')
+    food_name = models.CharField(max_length=200, verbose_name='食品名')
+    
+    # --- ★ここから修正・追加 ---
+    # 栄養素のフィールドは、nullを許可しておく
+    calories = models.FloatField(null=True, blank=True, verbose_name='カロリー (kcal)')
+    protein = models.FloatField(null=True, blank=True, verbose_name='タンパク質 (g)')
+    fat = models.FloatField(null=True, blank=True, verbose_name='脂質 (g)')
+    carbohydrates = models.FloatField(null=True, blank=True, verbose_name='炭水化物 (g)')
+    
+    # 食べた量を記録するフィールドを追加
+    quantity = models.FloatField(default=1.0, verbose_name='量')
+    unit = models.CharField(max_length=50, default='serving', verbose_name='単位 (例: g, ml, 個)')
+    # --- ★ここまで修正・追加 ---
+
+    def __str__(self):
+        return f"{self.food_name} in {self.meal}"

@@ -14,6 +14,10 @@ from datetime import datetime
 from django.utils import timezone
 from django.db.models import Sum, Avg, Max, Min
 
+from .models import Meal, MealItem
+from .serializers import MealSerializer, MealItemSerializer # MealItemSerializerもインポート
+from products.models import ProductNutrition
+
 
 # ... (これ以降に、FoodMasterViewSet, MealLogViewSet, DailyNutritionReportView などのクラス定義) ...
 # --- ★ここから新しい FoodMasterViewSet を追加 ---
@@ -91,3 +95,57 @@ class DailyNutritionReportView(APIView):
             }
         }
         return Response(response_data)
+    
+
+
+
+
+
+
+class AddMealFromBarcodeView(APIView):
+    """
+    バーコードと量から食事記録を作成するビュー
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        barcode = request.data.get('barcode')
+        quantity = float(request.data.get('quantity', 100.0))
+        meal_type = request.data.get('meal_type', 'snack')
+        
+        if not barcode:
+            return Response({"error": "バーコードが指定されていません。"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            product = ProductNutrition.objects.get(barcode=barcode)
+        except ProductNutrition.DoesNotExist:
+            return Response({"error": "その商品はデータベースに登録されていません。先にバーコード検索を行ってください。"}, status=status.HTTP_404_NOT_FOUND)
+
+        calories = (product.calories / 100) * quantity if product.calories else None
+        protein = (product.protein / 100) * quantity if product.protein else None
+        fat = (product.fat / 100) * quantity if product.fat else None
+        carbohydrates = (product.carbohydrates / 100) * quantity if product.carbohydrates else None
+
+        # ↓ ここで 'Meal' モデルを正しく使えているか確認
+        today = timezone.now().date()
+        meal, created = Meal.objects.get_or_create(
+            user=request.user,
+            meal_type=meal_type,
+            recorded_at__date=today
+        )
+        
+        # ↓ ここで作成した 'meal' 変数を正しく使えているか確認
+        MealItem.objects.create(
+            meal=meal,
+            food_name=product.product_name,
+            calories=calories,
+            protein=protein,
+            fat=fat,
+            carbohydrates=carbohydrates,
+            quantity=quantity,
+            unit='g'
+        )
+
+        serializer = MealSerializer(meal)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+# --- ★ここまで ---

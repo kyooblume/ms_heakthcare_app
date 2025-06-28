@@ -45,7 +45,8 @@ INSTALLED_APPS = [
     'health_records',  
     'meals',
     'chat', 
-    'reports',  # ← これを追加
+    'reports', 
+    'products',# ← これを追加
 ]
 
 MIDDLEWARE = [
