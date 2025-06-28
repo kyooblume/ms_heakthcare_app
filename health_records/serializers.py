@@ -1,7 +1,7 @@
 # health_records/serializers.py
 
 from rest_framework import serializers
-from .models import HealthRecord, Tag
+from .models import HealthRecord, Tag, SleepRecord
 # from django.contrib.auth.models import User # Userモデルを直接参照する場合に備えてコメントアウト
 
 # --- ★ここから新しい TagSerializer を追加 ---
@@ -70,3 +70,25 @@ class HealthRecordSerializer(serializers.ModelSerializer):
 #         model = HealthRecord
 #         fields = ['id', 'user', 'record_type', 'value_numeric', 'value_text', 'recorded_at', 'notes']
 #         read_only_fields = ('recorded_at',)
+
+
+
+
+
+# ... (既存の HealthRecordSerializer, TagSerializer はそのまま) ...
+
+# --- ★ここから新しい SleepRecordSerializer を追加 ---
+class SleepRecordSerializer(serializers.ModelSerializer):
+    user_username = serializers.CharField(source='user.username', read_only=True)
+    # 睡眠時間(duration)はモデルのsave()で自動計算されるので、読み取り専用にします
+    duration = serializers.DurationField(read_only=True)
+
+    class Meta:
+        model = SleepRecord
+        # APIでやり取りするフィールドを指定します
+        fields = [
+            'id', 'user_username', 'start_time', 'end_time', 
+            'duration', 'quality_rating', 'notes', 'created_at'
+        ]
+        # user, duration, created_atなどは、バックエンド側で自動設定するので読み取り専用にします
+        read_only_fields = ('user', 'duration', 'created_at', 'user_username')

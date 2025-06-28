@@ -33,6 +33,7 @@ urlpatterns = [
     path('api/health/', include('health_records.urls', namespace='health_records')),
     path('api/meals/', include('meals.urls', namespace='meals')),
     path('api/chat/', include('chat.urls')),
+    path('api/reports/', include('reports.urls', namespace='reports')), 
     
     # トークン認証用のURL
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

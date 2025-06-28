@@ -15,7 +15,11 @@ from rest_framework import status
 from django.utils import timezone
 from datetime import timedelta
 from django.db.models import Avg, Sum, Max, Min # 集計機能を使うためにインポート
-
+from .models import SleepRecord
+from .serializers import SleepRecordSerializer
+from django.db.models import Sum, Window, F
+from datetime import timedelta, datetime
+from django.db.models.functions import Rank
 
 class HealthRecordViewSet(viewsets.ModelViewSet):
     """
@@ -149,3 +153,100 @@ class HealthSummaryView(APIView):
         return Response(summary_data, status=status.HTTP_200_OK)
 # --- ★ここまで「今週の健康サマリー」用の新しいビュークラス ---
 # このビューは、ユーザーの健康記録を集計して、過去7日間のサマリーを提供します。
+
+
+class SleepRecordViewSet(viewsets.ModelViewSet):
+    """
+    睡眠記録のCRUD操作を行うためのAPIビューセット。
+    """
+    serializer_class = SleepRecordSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # 自分の睡眠記録だけを返す
+        return SleepRecord.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        # 新しい記録を、現在のユーザーに紐づけて保存
+        serializer.save(user=self.request.user)
+
+
+
+
+
+class StepCountRankingView(APIView):
+    """
+    指定された日付の歩数ランキングと自分の順位を返すビュー。
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, date_str):
+        try:
+            target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return Response({"error": "無効な日付形式です。YYYY-MM-DDで指定してください。"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = request.user
+
+        # 1. 指定された日付の歩数記録をユーザーごとに集計
+        #    - value_numeric (歩数) が 0 より大きいもののみを対象とする
+        #    - 合計歩数で降順に並び替え
+        daily_steps = HealthRecord.objects.filter(
+            record_type='steps',
+            recorded_at__date=target_date,
+            value_numeric__gt=0
+        ).values(
+            'user__username'  # ユーザー名でグループ化
+        ).annotate(
+            total_steps=Sum('value_numeric') # ユーザーごとの歩数を合計
+        ).order_by('-total_steps') # 合計歩数の多い順に並び替え
+
+        # 2. ランキングを付与
+        #    Window関数を使って、DB側で効率的にランキングを計算
+        ranked_steps = daily_steps.annotate(
+            rank=Window(
+                expression=Rank(),
+                order_by=F('total_steps').desc()
+            )
+        )
+
+        # 3. 参加者総数を取得
+        total_participants = ranked_steps.count()
+        if total_participants == 0:
+            return Response({
+                "rank": None,
+                "total_participants": 0,
+                "percentile": None,
+                "user_total_steps": 0,
+                "message": "この日の歩数記録はありません。"
+            }, status=status.HTTP_200_OK)
+
+        # 4. リクエストしたユーザーの順位と歩数を探す
+        my_rank_data = None
+        for record in ranked_steps:
+            if record['user__username'] == user.username:
+                my_rank_data = record
+                break
+        
+        # 5. レスポンスを作成
+        if my_rank_data:
+            percentile = ((total_participants - my_rank_data['rank']) / total_participants) * 100 if total_participants > 1 else 100
+            response_data = {
+                "date": target_date,
+                "rank": my_rank_data['rank'],
+                "total_participants": total_participants,
+                "user_total_steps": my_rank_data['total_steps'],
+                "percentile": round(percentile, 1) # 小数点第一位まで
+            }
+        else:
+            # ユーザーがその日に歩数記録を登録していない場合
+            response_data = {
+                "date": target_date,
+                "rank": None,
+                "total_participants": total_participants,
+                "user_total_steps": 0,
+                "percentile": None,
+                "message": "あなたはこの日に歩数記録を登録していません。"
+            }
+
+        return Response(response_data, status=status.HTTP_200_OK)

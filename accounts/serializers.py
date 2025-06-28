@@ -74,6 +74,12 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'target_protein', 
             'target_fat', 
             'target_carbohydrate',
+            'onboarding_complete',
+            'big5_openness', 
+            'big5_conscientiousness',
+            'big5_extraversion',
+            'big5_agreeableness',
+            'big5_neuroticism',
         ]
 
 

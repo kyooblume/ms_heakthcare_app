@@ -15,6 +15,14 @@ class UserProfile(models.Model):
     gender = models.CharField(max_length=20, choices=GENDER_CHOICES, null=True, blank=True, verbose_name='性別')
     profile_picture_url = models.URLField(max_length=255, null=True, blank=True, verbose_name='プロフィール画像URL')
     height_cm = models.FloatField(null=True, blank=True, verbose_name='身長 (cm)')
+
+        # --- Big Five用のフィールド ---
+    big5_openness = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name='ビッグファイブ：開放性')
+    big5_conscientiousness = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name='ビッグファイブ：誠実性')
+    big5_extraversion = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name='ビッグファイブ：外向性')
+    big5_agreeableness = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name='ビッグファイブ：協調性')
+    big5_neuroticism = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name='ビッグファイブ：神経症的傾向')
+    # ...
     # その他、目標設定などアプリ特有のユーザー情報を追加
     target_weight = models.FloatField(null=True, blank=True, verbose_name='目標体重 (kg)')
     target_steps_per_day = models.PositiveIntegerField(null=True, blank=True, verbose_name='目標歩数/日')
