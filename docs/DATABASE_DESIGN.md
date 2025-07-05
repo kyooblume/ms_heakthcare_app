@@ -20,6 +20,10 @@
 | **BodyType** (`customization`) | キャラクターの体型（痩せ型、標準など）と、その体型になるための閾値、画像URLを管理。 |
 | **AppearanceItem** (`customization`) | キャラクターが装備できるアイテム（帽子、靴など）のマスターデータ。 |
 | **UserCharacter** (`customization`) | ユーザーが現在どの体型で、どのアイテムを装備しているかを管理。**User**と1対1の関係。 |
+| **Survey** (`surveys`) | アンケート全体（例：「アプリ満足度調査」）の枠組み。 |
+| **Question** (`surveys`) | アンケートに含まれる個々の質問。**Survey**と多対1の関係。 |
+| **Choice** (`surveys`) | 質問に対する選択肢。**Question**と多対1の関係。 |
+| **Answer** (`surveys`) | ユーザーからの回答。**User**および**Question**と多対1の関係。 |
 
 ## 3. データベース概要図 (ERD)
 
@@ -28,73 +32,51 @@
 erDiagram
     User {
         string username PK
-        string password
-        string email
     }
-
     UserProfile {
         int user_id FK
-        date date_of_birth
-        float target_weight
-        float fitness_score
-        bool onboarding_complete
     }
-
     HealthRecord {
-        int id PK
         int user_id FK
-        string record_type
-        float value_numeric
-        datetime recorded_at
     }
-
     Meal {
-        int id PK
         int user_id FK
-        string meal_type
-        datetime recorded_at
     }
-
     MealItem {
-        int id PK
         int meal_id FK
-        string food_name
-        float calories
     }
-
-    ProductNutrition {
-        string barcode PK
-        string product_name
-        float calories
-    }
-
     UserCharacter {
         int user_id FK
-        int body_type_id FK
-        int head_item_id FK
     }
-
-    BodyType {
-        int id PK
-        string name
-        string image_url
-        int threshold
-    }
-
     AppearanceItem {
         int id PK
-        string name
-        string item_type
-        string image_url
+    }
+    Survey {
+        int id PK
+        string title
+    }
+    Question {
+        int survey_id FK
+        string text
+    }
+    Choice {
+        int question_id FK
+        string text
+    }
+    Answer {
+        int user_id FK
+        int question_id FK
     }
 
     User ||--|| UserProfile : "has"
     User ||--|{ HealthRecord : "logs"
     User ||--|{ Meal : "records"
     User ||--|| UserCharacter : "has"
+    User }o--o{ Answer : "answers"
     Meal ||--|{ MealItem : "contains"
-    UserCharacter ||--o| BodyType : "is"
-    UserCharacter ||--o| AppearanceItem : "wears"
     UserProfile }o--o{ AppearanceItem : "unlocks"
+    Survey ||--|{ Question : "has"
+    Question ||--|{ Choice : "provides"
+    Question ||--|{ Answer : "to"
 
 ```
