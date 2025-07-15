@@ -23,6 +23,9 @@
 | **Question** (`surveys`)       | アンケートに含まれる個々の質問。**Survey**と多対1の関係。                                   |
 | **Choice** (`surveys`)         | 質問に対する選択肢。**Question**と多対1の関係。                                             |
 | **Answer** (`surveys`)         | ユーザーからの回答。**User**および**Question**と多対1の関係。                               |
+| **BodyType** (`customization`) | キャラクターの体型と、その体型になるための閾値、画像URLを管理。                               |
+| **AppearanceItem** (`customization`) | キャラクターが装備できるアイテムのマスターデータ。                                             |
+| **UserCharacter** (`customization`) | ユーザーが現在どの体型で、どのアイテムを装備しているかを管理。**User**と1対1の関係。               |
 
 ## 3. データベース概要図 (ERD)
 
@@ -35,6 +38,7 @@ erDiagram
     }
     UserProfile {
         int user_id FK
+        float fitness_score
     }
     HealthRecord {
         int user_id FK
@@ -47,36 +51,43 @@ erDiagram
     }
     Recipe {
         int id PK
-        string title
     }
     Ingredient {
         int recipe_id FK
-        string name
     }
     Survey {
         int id PK
-        string title
     }
     Question {
         int survey_id FK
-        string text
     }
     Choice {
         int question_id FK
-        string text
     }
     Answer {
         int user_id FK
-        int question_id FK
+    }
+    UserCharacter {
+        int user_id FK
+    }
+    BodyType {
+        int id PK
+    }
+    AppearanceItem {
+        int id PK
     }
 
-    User ||--|| UserProfile : "has"
-    User ||--|{ HealthRecord : "logs"
-    User ||--|{ Meal : "records"
+    User ||--|| UserProfile : "has profile"
+    User ||--o{ HealthRecord : "logs"
+    User ||--o{ Meal : "records"
+    User ||--|| UserCharacter : "has character"
     User }o--o{ Answer : "answers"
     Meal ||--|{ MealItem : "contains"
     Recipe ||--|{ Ingredient : "uses"
     Survey ||--|{ Question : "has"
     Question ||--|{ Choice : "provides"
-    Question ||--|{ Answer : "to"
+    Question ||--o{ Answer : "to"
+    UserCharacter ||--o| BodyType : "is"
+    UserCharacter ||--o| AppearanceItem : "wears"
+    UserProfile }o--o{ AppearanceItem : "unlocks"
 ```
