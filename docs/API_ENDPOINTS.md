@@ -14,7 +14,7 @@
 * **ENDPOINT:** `/api/accounts/profile/`
 * **役割:** ログイン中のユーザーのプロフィール情報を取得または部分的に更新します。
 
-### オンボーディング状況の確認
+### 回答状況の確認
 * **METHOD:** `GET`
 * **ENDPOINT:** `/api/accounts/onboarding-status/`
 * **役割:** ユーザーが各アンケートに回答済みかどうかを返します。
