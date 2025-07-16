@@ -25,7 +25,6 @@
 
 ## データベースモデル
 
-
 このアプリケーションでは、Djangoの標準ユーザー認証システムと、アプリ独自のプロフィール情報を組み合わせる「**プロフィール拡張モデル**」という一般的な設計パターンを採用しています。
 
 ### `User` (Django標準モデル)
@@ -38,11 +37,22 @@
 
 ### `UserProfile` (独自拡張モデル)
 
-* **役割:** Django標準の`User`モデルを拡張し、このアプリ固有のユーザー情報を格納します。`User`モデルとは1対1の関係で紐付きます。
+* **役割:** Django標準の`User`モデルを拡張し、このアプリ固有のユーザー情報を格納します。`User`モデルとは**1対1の関係**で紐付きます。
 * **主なフィールド:**
-    * `user`: `User`モデルへの参照（リレーション）。
-    * `date_of_birth`, `gender`, `height_cm`: ユーザーの基本的な身体情報。
-    * `target_weight`, `target_steps_per_day` など: ユーザーが設定した各種目標値。
-    * `big5_openness`, `big5_conscientiousness` など: TIPI-Jに基づいた性格診断スコア。
-    * `onboarding_complete`: 初期設定が完了したかを示すフラグ。
-    * `unlocked_items`, `fitness_score`: キャラクターカスタマイズ関連のデータ。
+    | フィールド名 | 型 | 説明 |
+    | :--- | :--- | :--- |
+    | `user` | `OneToOneField` | `User`モデルへの関連付け。 |
+    | `date_of_birth`, `gender`, `height_cm` | `DateField`など | ユーザーの基本的な身体情報。 |
+    | `target_weight`, `target_steps_per_day` | `FloatField`など | ユーザーが設定した各種目標値。 |
+    | `big5_openness`, `big5_conscientiousness`など | `IntegerField` | TIPI-Jに基づいた性格診断スコア。 |
+    | `onboarding_complete` | `BooleanField` | 初期設定が完了したかを示すフラグ。 |
+    | `fitness_score` | `FloatField` | 日々の活動から計算される体力スコア。 |
+
+ 
+
+
+
+
+
+
+
