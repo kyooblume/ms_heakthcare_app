@@ -2,6 +2,8 @@
 
 from rest_framework import serializers
 from .models import HealthRecord, Tag, SleepRecord
+from .models import HealthRecord, SleepChronotypeSurvey, SleepSession
+
 # from django.contrib.auth.models import User # Userモデルを直接参照する場合に備えてコメントアウト
 
 # --- ★ここから新しい TagSerializer を追加 ---
@@ -92,3 +94,15 @@ class SleepRecordSerializer(serializers.ModelSerializer):
         ]
         # user, duration, created_atなどは、バックエンド側で自動設定するので読み取り専用にします
         read_only_fields = ('user', 'duration', 'created_at', 'user_username')
+
+
+
+# health_records/serializers.py
+
+# ... (既存のHealthRecordSerializer) ...
+
+class SleepSessionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SleepSession
+        fields = '__all__'
+        read_only_fields = ('user', 'sleep_score') # ユーザーとスコアは自動で設定

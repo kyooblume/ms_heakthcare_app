@@ -20,7 +20,11 @@ from .serializers import SleepRecordSerializer
 from django.db.models import Sum, Window, F
 from datetime import timedelta, datetime
 from django.db.models.functions import Rank
+# ... (既存のimport文) ...
 
+from .serializers import HealthRecordSerializer, SleepSessionSerializer
+from .models import HealthRecord, SleepChronotypeSurvey, SleepSession
+from .serializers import HealthRecordSerializer, SleepChronotypeSurveySerializer, SleepSessionSerializer
 class HealthRecordViewSet(viewsets.ModelViewSet):
     """
     健康記録のCRUD操作を行うためのAPIビューセット。
@@ -250,3 +254,45 @@ class StepCountRankingView(APIView):
             }
 
         return Response(response_data, status=status.HTTP_200_OK)
+
+# health_records/views.py
+
+
+
+# ... (既存のHealthRecordViewSet) ...
+
+class SleepSessionViewSet(viewsets.ModelViewSet):
+    """
+    睡眠セッションの詳細データのCRUD操作を行うビューセット
+    """
+    serializer_class = SleepSessionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return SleepSession.objects.filter(user=self.request.user).order_by('-recorded_at')
+
+    def perform_create(self, serializer):
+        # 記録日をstart_timeから自動で設定
+        start_time = serializer.validated_data.get('start_time')
+        serializer.save(user=self.request.user, recorded_at=start_time.date())
+
+
+
+class SleepChronotypeSurveyViewSet(viewsets.ModelViewSet):
+    """睡眠クロノタイプアンケートのCRUD"""
+    serializer_class = SleepChronotypeSurveySerializer
+    permission_classes = [IsAuthenticated]
+    def get_queryset(self):
+        return SleepChronotypeSurvey.objects.filter(user=self.request.user)
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class SleepSessionViewSet(viewsets.ModelViewSet):
+    """睡眠セッションの詳細データのCRUD"""
+    serializer_class = SleepSessionSerializer
+    permission_classes = [IsAuthenticated]
+    def get_queryset(self):
+        return SleepSession.objects.filter(user=self.request.user).order_by('-recorded_at')
+    def perform_create(self, serializer):
+        start_time = serializer.validated_data.get('start_time')
+        serializer.save(user=self.request.user, recorded_at=start_time.date())

@@ -5,7 +5,7 @@ from rest_framework.routers import DefaultRouter # ルーターをインポー�
 from .views import HealthRecordViewSet # 先ほど作成したHealthRecordViewSetをインポート
 from .views import HealthRecordViewSet, HealthSummaryView, SleepRecordViewSet
 from .views import HealthRecordViewSet, HealthSummaryView, StepCountRankingView
-
+from .views import HealthRecordViewSet, HealthSummaryView, SleepChronotypeSurveyViewSet, SleepSessionViewSet
 # DefaultRouterのインスタンスを作成
 router = DefaultRouter()
 
@@ -18,6 +18,8 @@ router.register(r'records', HealthRecordViewSet, basename='healthrecord')
 # 通常、ModelViewSetでquerysetが設定されていれば自動で推測されますが、
 # 明示しておくと確実です。
 router.register(r'sleep', SleepRecordViewSet, basename='sleeprecord') 
+router.register(r'records', HealthRecordViewSet, basename='healthrecord')
+router.register(r'sleep-sessions', SleepSessionViewSet, basename='sleepsession') 
 app_name = 'health_records' # アプリケーションの名前空間を定義（推奨）
 
 urlpatterns = [
@@ -25,4 +27,5 @@ urlpatterns = [
      path('steps/ranking/<str:date_str>/', StepCountRankingView.as_view(), name='steps-ranking'),
     path('summary/', HealthSummaryView.as_view(), name='health-summary'),
     path('', include(router.urls)),
+    
 ]

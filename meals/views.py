@@ -7,10 +7,12 @@ from rest_framework.response import Response
 from datetime import datetime
 from django.utils import timezone
 from django.db.models import Sum, Avg, Max, Min
-
 from .models import MealLog, FoodMaster, Meal, MealItem
 from .serializers import MealLogSerializer, FoodMasterSerializer, MealSerializer, MealItemSerializer
-
+from django.utils import timezone
+from django.db.models import Sum
+from accounts.models import UserProfile # UserProfileをインポート
+from .models import Meal, MealItem # 新しいMealモデルをインポート
 
 class FoodMasterViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -42,63 +44,75 @@ class MealLogViewSet(viewsets.ModelViewSet):
         serializer.save(user=self.request.user)
 
 
-class DailyNutritionReportView(APIView):
-    """日次栄養レポートを取得するビュー"""
+class DailyNutritionSummaryView(APIView):
+    """
+    指定された日付の「目標」「実績」「差額」をまとめて返す、万能な栄養サマリーAPIビュー。
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request, date_str):
         try:
-            # URLから受け取った日付文字列を日付オブジェクトに変換
-            target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            target_date = timezone.datetime.strptime(date_str, '%Y-%m-%d').date()
         except ValueError:
-            return Response(
-                {"error": "無効な日付形式です。YYYY-MM-DDで指定してください。"}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"error": "無効な日付形式です。YYYY-MM-DDで指定してください。"}, status=status.HTTP_400_BAD_REQUEST)
 
         user = request.user
-        
-        # ユーザープロファイルが存在するかチェック
+
+        # 1. ユーザーの目標値を取得
         try:
-            profile = user.profile
-        except AttributeError:
-            # プロファイルが存在しない場合のデフォルト値
-            target_calories = 2000
-            target_protein = 60
-        else:
-            target_calories = getattr(profile, 'target_calories', 2000)
-            target_protein = getattr(profile, 'target_protein', 60)
+            profile = user.userprofile
+            targets = {
+                "calories": profile.target_calories,
+                "protein": profile.target_protein,
+                "fat": profile.target_fat,
+                "carbohydrate": profile.target_carbohydrate,
+            }
+        except UserProfile.DoesNotExist:
+            targets = {"calories": 0, "protein": 0, "fat": 0, "carbohydrate": 0}
 
-        # その日の食事記録を取得
-        meal_logs = MealLog.objects.filter(user=user, eaten_at__date=target_date)
+        # 2. その日の実際の摂取量を計算
+        todays_meals = Meal.objects.filter(user=user, recorded_at__date=target_date)
+        actuals_data = MealItem.objects.filter(meal__in=todays_meals).aggregate(
+            total_calories=Sum('calories'),
+            total_protein=Sum('protein'),
+            total_fat=Sum('fat'),
+            total_carbohydrates=Sum('carbohydrates')
+        )
 
-        # 栄養素の合計を計算
-        actual_calories = 0
-        actual_protein = 0
-        
-        for log in meal_logs:
-            for component in log.components.all():
-                # 食べた量(g)に応じて栄養素を計算
-                ratio = component.quantity / 100.0
-                actual_calories += component.food.calories_per_100g * ratio
-                actual_protein += component.food.protein_per_100g * ratio
+        actuals = {
+            "calories": round(actuals_data.get('total_calories') or 0),
+            "protein": round(actuals_data.get('total_protein') or 0, 1),
+            "fat": round(actuals_data.get('total_fat') or 0, 1),
+            "carbohydrate": round(actuals_data.get('total_carbohydrate') or 0, 1),
+        }
 
-        # レスポンスデータを作成
+        # 3. レスポンスデータを作成（目標、実績、差額をすべて含める）
         response_data = {
             "date": target_date,
             "summary": {
                 "calories": {
-                    "target": target_calories, 
-                    "actual": round(actual_calories), 
-                    "balance": round(actual_calories - target_calories)
+                    "target": targets["calories"], 
+                    "actual": actuals["calories"],
+                    "balance": actuals["calories"] - (targets["calories"] or 0)
                 },
                 "protein": {
-                    "target": target_protein, 
-                    "actual": round(actual_protein, 1), 
-                    "balance": round(actual_protein - target_protein, 1)
+                    "target": targets["protein"], 
+                    "actual": actuals["protein"],
+                    "balance": round(actuals["protein"] - (targets["protein"] or 0), 1)
+                },
+                "fat": {
+                    "target": targets["fat"], 
+                    "actual": actuals["fat"],
+                    "balance": round(actuals["fat"] - (targets["fat"] or 0), 1)
+                },
+                "carbohydrate": {
+                    "target": targets["carbohydrate"], 
+                    "actual": actuals["carbohydrate"],
+                    "balance": round(actuals["carbohydrate"] - (targets["carbohydrate"] or 0), 1)
                 },
             }
         }
+
         return Response(response_data)
 
 

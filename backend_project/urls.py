@@ -35,7 +35,8 @@ urlpatterns = [
     path('api/chat/', include('chat.urls')),
     path('api/reports/', include('reports.urls', namespace='reports')), 
     path('api/products/', include('products.urls')), # ← ★この行を追加
-    
+    path('api/', include('surveys.urls')), 
+    path('api/recipes/', include('recipes.urls')),
     # トークン認証用のURL
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

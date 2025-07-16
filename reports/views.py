@@ -8,10 +8,12 @@ from datetime import datetime
 # データベースの機能と、他のアプリのモデルをインポート
 from django.db.models import Count, Avg, Max, Min, F, Window
 from django.db.models.functions import Rank
-from health_records.models import HealthRecord
-
 from health_records.models import HealthRecord, SleepChronotypeSurvey
 from datetime import datetime, time, timedelta
+from django.utils import timezone
+from accounts.models import UserProfile
+
+
 
 class StepRankingReportView(APIView):
     permission_classes = [IsAuthenticated]
@@ -141,3 +143,149 @@ class SocialJetlagReportView(APIView):
         duration = wake_datetime - bed_datetime
         midpoint = bed_datetime + duration / 2
         return midpoint
+    
+
+
+#
+class DailyActivityReportView(APIView):
+    """
+    指定された日の活動量（歩数）の目標、実績、達成率を返すビュー。
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, date_str):
+        try:
+            target_date = timezone.datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return Response({"error": "無効な日付形式です。YYYY-MM-DDで指定してください。"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = request.user
+
+        # 1. 目標歩数を取得
+        target_steps = 0
+        try:
+            profile = user.userprofile
+            target_steps = profile.target_steps_per_day or 0
+        except UserProfile.DoesNotExist:
+            pass
+
+        # 2. 実績歩数を取得
+        actual_steps = 0
+        try:
+            record = HealthRecord.objects.get(user=user, record_type='steps', recorded_at__date=target_date)
+            actual_steps = record.value_numeric or 0
+        except HealthRecord.DoesNotExist:
+            pass
+            
+        # 3. 達成率を計算
+        achievement_rate = 0
+        if target_steps > 0:
+            achievement_rate = round((actual_steps / target_steps) * 100)
+
+        # 4. レスポンスデータを作成
+        response_data = {
+            "date": target_date,
+            "steps": {
+                "target": target_steps,
+                "actual": int(actual_steps),
+                "achievement_rate": achievement_rate 
+            }
+        }
+        return Response(response_data)
+    
+
+class WeeklySleepReportView(APIView):
+    """
+    過去7日間の睡眠記録を返すビュー。
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        today = timezone.now().date()
+        week_ago = today - timedelta(days=6)
+        
+        # 過去7日間の睡眠記録を取得
+        sleep_records = HealthRecord.objects.filter(
+            user=user, 
+            record_type='sleep',
+            recorded_at__date__range=[week_ago, today]
+        ).order_by('recorded_at')
+        
+        # 日付ごとの睡眠時間を整理
+        # { '2025-07-10': 7.5, '2025-07-11': 6.0, ... } のような形式にする
+        report_data = {}
+        for i in range(7):
+            date = week_ago + timedelta(days=i)
+            report_data[date.strftime('%Y-%m-%d')] = 0 # まず0で初期化
+        
+        for record in sleep_records:
+            date_str = record.recorded_at.strftime('%Y-%m-%d')
+            report_data[date_str] = record.value_numeric # 実績値で上書き
+            
+        return Response(report_data)
+    
+
+
+class DailyActivityReportView(APIView):
+    """
+    指定された日の活動量（歩数）の目標、実績、達成率を返すビュー。
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, date_str):
+        try:
+            target_date = timezone.datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            return Response({"error": "無効な日付形式です。YYYY-MM-DDで指定してください。"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = request.user
+
+        target_steps = getattr(user.userprofile, 'target_steps_per_day', 0) or 0
+        
+        try:
+            record = HealthRecord.objects.get(user=user, record_type='steps', recorded_at__date=target_date)
+            actual_steps = record.value_numeric or 0
+        except HealthRecord.DoesNotExist:
+            actual_steps = 0
+            
+        achievement_rate = round((actual_steps / target_steps) * 100) if target_steps > 0 else 0
+
+        response_data = {
+            "date": target_date,
+            "steps": {
+                "target": target_steps,
+                "actual": int(actual_steps),
+                "achievement_rate": achievement_rate
+            }
+        }
+        return Response(response_data)
+
+
+class WeeklySleepReportView(APIView):
+    """
+    過去7日間の睡眠記録を返すビュー。
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        today = timezone.now().date()
+        week_ago = today - timedelta(days=6)
+        
+        sleep_records = HealthRecord.objects.filter(
+            user=user, 
+            record_type='sleep',
+            recorded_at__date__range=[week_ago, today]
+        ).order_by('recorded_at')
+        
+        report_data = {}
+        for i in range(7):
+            date = week_ago + timedelta(days=i)
+            report_data[date.strftime('%Y-%m-%d')] = 0
+        
+        for record in sleep_records:
+            date_str = record.recorded_at.strftime('%Y-%m-%d')
+            report_data[date_str] = record.value_numeric
+            
+        return Response(report_data)

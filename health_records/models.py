@@ -1,11 +1,6 @@
 from django.db import models
-
-# Create your models here.
-# health_records/models.py
-
-from django.db import models
 from django.conf import settings # settings.AUTH_USER_MODEL を使うため
-
+from django.utils import timezone
 # タグモデルを定義
 class Tag(models.Model):
     """
@@ -162,3 +157,79 @@ class SleepChronotypeSurvey(models.Model):
     class Meta:
         verbose_name = '睡眠クロノタイプアンケート'
         verbose_name_plural = '睡眠クロノタイプアンケート'
+
+
+
+class SleepSession(models.Model):
+    """
+    一晩の睡眠セッションに関する詳細なデータを管理するモデル。
+    """
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    
+    # 睡眠セッションの期間
+    start_time = models.DateTimeField(verbose_name='就寝時刻')
+    end_time = models.DateTimeField(verbose_name='起床時刻')
+    
+    # 各睡眠フェーズの時間（分単位で保存）
+    duration_total_minutes = models.PositiveIntegerField(null=True, blank=True, verbose_name='総睡眠時間 (分)')
+    duration_deep_minutes = models.PositiveIntegerField(null=True, blank=True, verbose_name='深い睡眠の時間 (分)')
+    duration_rem_minutes = models.PositiveIntegerField(null=True, blank=True, verbose_name='レム睡眠の時間 (分)')
+    duration_awake_minutes = models.PositiveIntegerField(null=True, blank=True, verbose_name='中途覚醒の時間 (分)')
+    
+    # このセッションで計算された睡眠スコア
+    sleep_score = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name='睡眠スコア (0-100)')
+    
+    # 記録された日付
+    recorded_at = models.DateField(db_index=True, verbose_name='記録日')
+
+    def __str__(self):
+        return f"{self.user.username}'s sleep on {self.recorded_at}"
+
+    def save(self, *args, **kwargs):
+        # 保存される前に、自動で睡眠スコアを計算する
+        self.calculate_sleep_score()
+        super().save(*args, **kwargs)
+
+    def calculate_sleep_score(self):
+        # ここに睡眠スコアの計算ロジックを実装
+        if self.duration_total_minutes is None:
+            self.sleep_score = None
+            return
+
+        # 各指標を点数化 (0-100点)
+        score_duration = self._score_sleep_duration(self.duration_total_minutes)
+        score_deep = self._score_deep_sleep(self.duration_total_minutes, self.duration_deep_minutes)
+        score_rem = self._score_rem_sleep(self.duration_total_minutes, self.duration_rem_minutes)
+        
+        # 各スコアに重み付けをして、最終スコアを算出（この重み付けは調整可能）
+        final_score = (score_duration * 0.5) + (score_deep * 0.25) + (score_rem * 0.25)
+        self.sleep_score = int(final_score)
+
+    def _score_sleep_duration(self, total_minutes):
+        # 睡眠時間のスコア化 (例: 7-9時間が100点)
+        if 420 <= total_minutes <= 540:
+            return 100
+        elif total_minutes < 420:
+            return max(0, 100 - ((420 - total_minutes) / 3))
+        else:
+            return max(0, 100 - ((total_minutes - 540) / 3))
+
+    def _score_deep_sleep(self, total_minutes, deep_minutes):
+        # 深い睡眠のスコア化 (例: 全体の15-20%が理想)
+        if total_minutes == 0: return 0
+        deep_percentage = (deep_minutes / total_minutes) * 100
+        if 15 <= deep_percentage <= 20:
+            return 100
+        elif deep_percentage < 15:
+            return max(0, (deep_percentage / 15) * 100)
+        else:
+            return max(0, 100 - ((deep_percentage - 20) * 5))
+
+    def _score_rem_sleep(self, total_minutes, rem_minutes):
+        # レム睡眠のスコア化 (例: 全体の20-25%が理想)
+        if total_minutes == 0: return 0
+        rem_percentage = (rem_minutes / total_minutes) * 100
+        if 20 <= rem_percentage <= 25:
+            return 100
+        # ... (深い睡眠と同様のロジック)
+        return 80 # 仮
