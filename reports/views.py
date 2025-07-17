@@ -73,9 +73,6 @@ class StepRankingReportView(APIView):
     
 
 
-
-
-
 class SocialJetlagReportView(APIView):
     """
     社会的ジェットラグの少なさ（体内時計の正確さ）に基づいたランキングを返す。

@@ -1,63 +1,103 @@
-# recipes/views.py
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.utils import timezone
-# ↓ データベースの計算で使う、便利な機能をインポートします
-from django.db.models import Sum, F
-from django.db.models.functions import Abs
-
+from django.db.models import Sum, F, Q, FloatField
+from django.db.models.functions import Abs, Coalesce
 from .models import Recipe
 from .serializers import RecipeSerializer
 from meals.models import MealItem
 
+
 class SuggestRecipeView(APIView):
+    """
+    ユーザーの栄養摂取状況と優先順位設定に基づき、
+    最適な献立を提案するAPIビュー。
+    """
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        user = request.user
-        profile = user.userprofile
+        from accounts.models import UserProfile
+        try:
+            user = request.user
+            profile = user.userprofile
+        except UserProfile.DoesNotExist:
+            return Response({"error": "ユーザープロフィールが見つかりません。"}, status=status.HTTP_404_NOT_FOUND)
+
         today = timezone.now().date()
 
-        # 1. 今日の栄養摂取量を計算
+        # 1. ユーザーの目標値を取得 (目標がなければデフォルト値を設定)
+        targets = {
+            'protein': profile.target_protein or 70.0,
+            'fat': profile.target_fat or 60.0,
+            'carbohydrate': profile.target_carbohydrate or 250.0,
+        }
+
+        # 2. 今日の実績摂取量を計算
         todays_items = MealItem.objects.filter(meal__user=user, meal__recorded_at__date=today)
-        actual_protein = todays_items.aggregate(total=Sum('protein'))['total'] or 0
+        actuals = todays_items.aggregate(
+            protein=Coalesce(Sum('protein'), 0.0, output_field=FloatField()),
+            fat=Coalesce(Sum('fat'), 0.0, output_field=FloatField()),
+            carbohydrates=Coalesce(Sum('carbohydrates'), 0.0, output_field=FloatField())
+        )
 
-        # 2. 不足している栄養素を特定
-        protein_deficit = (profile.target_protein or 70) - actual_protein
-
-        # 3. もしタンパク質が不足していれば...
-        if protein_deficit > 10: # 10g以上不足している場合
-            message = f"タンパク質が約{int(protein_deficit)}g不足しています。こんな料理はいかがですか？"
-
-            # --- ★ここからが新しいロジック ---
-            # 4. 「ちょうど良い」範囲のレシピを探す
-            # 例：不足分(20g)の80%～150%のタンパク質を含むレシピを探す
-            ideal_min = protein_deficit * 0.8
-            ideal_max = protein_deficit * 1.5
-            
-            # まずは理想的な範囲のレシピ候補を取得
-            suggested_recipes = Recipe.objects.filter(
-                total_protein__gte=ideal_min,
-                total_protein__lte=ideal_max
-            )
-
-            # 5. 候補の中から、不足分に「最も近い」レシピを選ぶ
-            #    Abs()は絶対値を計算する機能。差が小さい順に並べ替える
-            if suggested_recipes.exists():
-                suggested_recipes = suggested_recipes.annotate(
-                    diff=Abs(F('total_protein') - protein_deficit)
-                ).order_by('diff')[:3] # 差が小さい上位3件を提案
-            else:
-                # 理想的なレシピがなければ、これまで通りタンパク質が多いものを提案
-                suggested_recipes = Recipe.objects.order_by('-total_protein')[:3]
-            # --- ★ここまでが新しいロジック ---
-
-        else:
-            # 足りている場合は、汎用的なおすすめを提案
+        # 3. 各栄養素の「不足量」と「不足率」を計算
+        deficits = {
+            'protein': targets['protein'] - actuals['protein'],
+            'fat': targets['fat'] - actuals['fat'],
+            'carbohydrate': targets['carbohydrate'] - actuals['carbohydrates'],
+        }
+        
+        # 10g以上不足している栄養素をリストアップ
+        lacking_nutrients = {k: v for k, v in deficits.items() if v > 10}
+#要krン頭
+        if not lacking_nutrients:
+            # 不足がなければ、汎用的なおすすめを提案
             message = "栄養バランスは良い調子です！こんな料理はいかがですか？"
-            suggested_recipes = Recipe.objects.order_by('?')[:3] # ランダムに3件
+            suggested_recipes = Recipe.objects.order_by('?')[:5]
+        else:
+            # ユーザーの優先順位設定を取得
+            priority = profile.nutrition_priority
+
+            # 4. ユーザーの優先順位に応じて、レシピの評価方法を切り替え
+            if priority == 'protein_first':
+                message = "タンパク質を最優先で補給しましょう！"
+                suggested_recipes = Recipe.objects.order_by('-total_protein')[:5]
+
+            elif priority == 'low_calorie':
+                message = "カロリーを抑えつつ、栄養を補える献立はこちらです。"
+                # カロリーが低く、かつ不足栄養素をある程度補えるものを探す
+                suggested_recipes = Recipe.objects.filter(
+                    Q(total_protein__gte=deficits.get('protein', 0) * 0.5) |
+                    Q(total_fat__gte=deficits.get('fat', 0) * 0.5) |
+                    Q(total_carbohydrates__gte=deficits.get('carbohydrate', 0) * 0.5)
+                ).order_by('total_calories')[:5]
+            
+            else: # デフォルトは 'balance' (全体的なバランスを重視)
+                # 不足率が最も高い「メインターゲット」を特定
+                deficiency_ratios = {
+                    nutrient: (deficits[nutrient] / targets[nutrient])
+                    for nutrient in lacking_nutrients
+                }
+                main_target_nutrient = max(deficiency_ratios, key=deficiency_ratios.get)
+                message = f"{main_target_nutrient.capitalize()} が特に不足しています。バランスを考えて、こんな料理はいかがですか？"
+
+                # 総合スコアでレシピを評価し、上位を提案
+                suggested_recipes = Recipe.objects.annotate(
+                    # メインターゲットの充足度 (50点満点)
+                    main_score=50.0 * (F(f'total_{main_target_nutrient}') / deficits[main_target_nutrient]),
+                    # 他の不足栄養素の充足度 (それぞれ25点満点)
+                    protein_score=25.0 * (F('total_protein') / deficits.get('protein', 1.0)),
+                    fat_score=25.0 * (F('total_fat') / deficits.get('fat', 1.0)),
+                    carb_score=25.0 * (F('total_carbohydrates') / deficits.get('carbohydrate', 1.0))
+                ).annotate(
+                    # 総合スコアを計算
+                    total_score=F('main_score') +
+                                (F('protein_score') if 'protein' in lacking_nutrients else 0) +
+                                (F('fat_score') if 'fat' in lacking_nutrients else 0) +
+                                (F('carb_score') if 'carbohydrate' in lacking_nutrients else 0)
+                ).order_by('-total_score')[:5]
 
         serializer = RecipeSerializer(suggested_recipes, many=True)
         response_data = {

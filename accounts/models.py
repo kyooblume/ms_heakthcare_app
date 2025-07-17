@@ -54,7 +54,23 @@ class UserProfile(models.Model):
         return f"{self.user.username}'s Profile"
     
 
-
+    
+    # --- ★ここから新しい設定項目を追加 ---
+    NUTRITION_PRIORITY_CHOICES = [
+        ('balance', '全体的なバランスを重視'),
+        ('protein_first', 'タンパク質を最優先'),
+        ('low_calorie', 'カロリーを抑えることを最優先'),
+        ('energy_up', '炭水化物を優先してエネルギー補給'),
+    ]
+    nutrition_priority = models.CharField(
+        max_length=20,
+        choices=NUTRITION_PRIORITY_CHOICES,
+        default='balance',
+        verbose_name='栄養摂取の優先順位'
+    )
+    # --- ★ここまで追加 ---
+    
+    # ...
 
 # ↓ --- ここからシグナルのコードを追加 --- ↓
 
