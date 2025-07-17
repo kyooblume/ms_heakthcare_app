@@ -49,8 +49,6 @@
     python manage.py createsuperuser
     ```
 
-    ```
-
 7.  **開発サーバーの起動:**
     ```bash
     python manage.py runserver
