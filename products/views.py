@@ -7,6 +7,8 @@ from rest_framework.permissions import IsAuthenticated
 import requests # 外部APIリクエスト用
 from .models import ProductNutrition
 from .serializers import ProductNutritionSerializer
+from recipes.models import Recipe 
+
 
 class ProductLookupView(APIView):
     permission_classes = [IsAuthenticated]
@@ -20,6 +22,32 @@ class ProductLookupView(APIView):
         except ProductNutrition.DoesNotExist:
             # 2. キャッシュになければ、外部APIに問い合わせる
             pass
+
+
+# 2. 次に、バーコードが「数字」なら、自分たちの「レシピDB」を探す
+        if barcode.isdigit(): # バーコードが数字だけで構成されているかチェック
+            try:
+                recipe_id = int(barcode) # 文字列を、数字に変換
+                recipe = Recipe.objects.get(id=recipe_id)
+                
+                # レシピが見つかったら、商品キャッシュとして新しく作成
+                new_product = ProductNutrition.objects.create(
+                    barcode=barcode,
+                    product_name=recipe.title,
+                    calories=recipe.total_calories,
+                    protein=recipe.total_protein,
+                    fat=recipe.total_fat,
+                    carbohydrates=recipe.total_carbohydrates,
+                    image_url=recipe.image_url,
+                    source='internal_recipe'
+                )
+                serializer = ProductNutritionSerializer(new_product)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+
+            except (Recipe.DoesNotExist, ValueError):
+                # レシピが見つからないか、数字への変換に失敗したら、次のステップへ
+                pass
+        # --- ★ここまでが、新しいロジックです ---
 
         # Open Food Facts APIのエンドポイント
         url = f"https://world.openfoodfacts.org/api/v2/product/{barcode}.json"

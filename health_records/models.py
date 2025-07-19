@@ -58,7 +58,7 @@ class HealthRecord(models.Model):
     value_text = models.TextField(null=True, blank=True, verbose_name='テキスト値')
 
     # 記録日時 (入力時に自動で現在日時が設定される)
-    recorded_at = models.DateTimeField(auto_now_add=True, verbose_name='記録日時')
+    recorded_at = models.DateTimeField(default=timezone.now, verbose_name='日時')
     # ユーザーが任意の日時で記録したい場合は auto_now_add=False にして、
     # default=timezone.now や、入力フィールドにする必要があります。
     # 今回はシンプルに自動記録とします。

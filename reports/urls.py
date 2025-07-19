@@ -1,6 +1,6 @@
 # reports/urls.py
 from django.urls import path
-from .views import StepRankingReportView, SocialJetlagReportView, DailyActivityReportView, WeeklySleepReportView
+from .views import StepRankingReportView, SocialJetlagReportView, DailyActivityReportView, WeeklySleepReportView, SocialJetlagReportView, DashboardSummaryView
 
 app_name = 'reports'
 

@@ -60,7 +60,7 @@ class DailyNutritionSummaryView(APIView):
 
         # 1. ユーザーの目標値を取得
         try:
-            profile = user.userprofile
+            profile = user.profile
             targets = {
                 "calories": profile.target_calories,
                 "protein": profile.target_protein,

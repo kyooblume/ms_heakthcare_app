@@ -12,6 +12,15 @@ from health_records.models import HealthRecord, SleepChronotypeSurvey
 from datetime import datetime, time, timedelta
 from django.utils import timezone
 from accounts.models import UserProfile
+from datetime import timedelta
+from django.db.models import Avg # 平均を計算するためにインポート
+
+
+
+
+from datetime import datetime, timedelta
+from django.db.models import Sum, F, Window, Avg
+from django.db.models.functions import Rank, Abs
 
 
 
@@ -226,7 +235,7 @@ class WeeklySleepReportView(APIView):
 
 class DailyActivityReportView(APIView):
     """
-    指定された日の活動量（歩数）の目標、実績、達成率を返すビュー。
+    指定された日の活動量（歩数）の目標、実績、達成率を返す、より安全なビュー。
     """
     permission_classes = [IsAuthenticated]
 
@@ -238,22 +247,36 @@ class DailyActivityReportView(APIView):
 
         user = request.user
 
-        target_steps = getattr(user.userprofile, 'target_steps_per_day', 0) or 0
-        
+        # 1. 目標歩数を安全に取得
+        target_steps = 0
         try:
-            record = HealthRecord.objects.get(user=user, record_type='steps', recorded_at__date=target_date)
-            actual_steps = record.value_numeric or 0
+            # user.userprofile の代わりに、UserProfile.objects.get() を使って安全に取得
+            profile = UserProfile.objects.get(user=user)
+            target_steps = profile.target_steps_per_day or 0
+        except UserProfile.DoesNotExist:
+            # プロフィールが存在しない場合は、目標を0として扱う
+            pass
+
+        # 2. 実績歩数を安全に取得
+        actual_steps = 0
+        try:
+            # .get() はデータがないとエラーになるので、.filter().first() を使うのがより安全
+            record = HealthRecord.objects.filter(user=user, record_type='steps', recorded_at__date=target_date).first()
+            if record:
+                actual_steps = record.value_numeric or 0
         except HealthRecord.DoesNotExist:
-            actual_steps = 0
+            # 記録がなくてもエラーにしない
+            pass
             
+        # 3. 達成率を計算
         achievement_rate = round((actual_steps / target_steps) * 100) if target_steps > 0 else 0
 
         response_data = {
             "date": target_date,
             "steps": {
-                "target": target_steps,
+                "target": int(target_steps),
                 "actual": int(actual_steps),
-                "achievement_rate": achievement_rate
+                "achievement_rate": achievement_rate 
             }
         }
         return Response(response_data)
@@ -286,3 +309,75 @@ class WeeklySleepReportView(APIView):
             report_data[date_str] = record.value_numeric
             
         return Response(report_data)
+
+
+
+
+# --- ★DashboardSummaryView を、この新しいコードに丸ごと置き換えてください ---
+class DashboardSummaryView(APIView):
+    """
+    ダッシュボードに必要な全てのサマリーデータを一度に返す、万能APIビュー。(完成版)
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        today = timezone.now().date()
+
+        # --- 1. 歩数データの計算 ---
+        target_steps = 0
+        try:
+            # プロフィールが存在しなくてもエラーにならないように、get_or_create を使用
+            profile, created = UserProfile.objects.get_or_create(user=user)
+            target_steps = profile.target_steps_per_day or 0
+        except UserProfile.DoesNotExist:
+            pass
+
+        # 今日の歩数
+        today_steps_record = HealthRecord.objects.filter(user=user, record_type='steps', recorded_at__date=today).first()
+        today_steps = today_steps_record.value_numeric if today_steps_record else 0
+        
+        # --- ★ここが修正ポイントです！ ---
+        # 週間平均歩数 (今日を含めた、過去7日間)
+        week_ago = today - timedelta(days=6) # 7ではなく6が正しい
+        weekly_avg_data = HealthRecord.objects.filter(
+            user=user, record_type='steps', recorded_at__date__gte=week_ago, recorded_at__date__lte=today
+        ).aggregate(average=Avg('value_numeric'))
+        weekly_avg_steps = weekly_avg_data.get('average') or 0
+
+        # 月間平均歩数 (今日を含めた、過去30日間)
+        month_ago = today - timedelta(days=29) # 30ではなく29が正しい
+        monthly_avg_data = HealthRecord.objects.filter(
+            user=user, record_type='steps', recorded_at__date__gte=month_ago, recorded_at__date__lte=today
+        ).aggregate(average=Avg('value_numeric'))
+        monthly_avg_steps = monthly_avg_data.get('average') or 0
+        # --- ★ここまでが修正ポイント ---
+
+        # --- 2. 睡眠データの計算 (週間) ---
+        # (ここは変更なし)
+        sleep_records = HealthRecord.objects.filter(
+            user=user, record_type='sleep', recorded_at__date__range=[week_ago, today]
+        ).order_by('recorded_at')
+        
+        weekly_sleep_data = {}
+        for i in range(7):
+            date = week_ago + timedelta(days=i)
+            weekly_sleep_data[date.strftime('%Y-%m-%d')] = 0
+        for record in sleep_records:
+            date_str = record.recorded_at.strftime('%Y-%m-%d')
+            weekly_sleep_data[date_str] = record.value_numeric
+
+        # --- 3. レスポンスデータをまとめる ---
+        response_data = {
+            "activity": {
+                "today_steps": int(today_steps),
+                "target_steps": int(target_steps),
+                "weekly_average_steps": int(weekly_avg_steps),
+                "monthly_average_steps": int(monthly_avg_steps)
+            },
+            "sleep": {
+                "weekly_summary": weekly_sleep_data
+            }
+        }
+        return Response(response_data)
+

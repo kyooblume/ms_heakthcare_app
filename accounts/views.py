@@ -20,6 +20,7 @@ from health_records.models import SleepChronotypeSurvey
 # UserProfileモデルと、対応するシリアライザーをインポートします
 from .models import UserProfile
 from .serializers import UserProfileSerializer
+from .models import UserProfile, UserDevice
 
 class UserRegistrationView(generics.CreateAPIView):
     """
