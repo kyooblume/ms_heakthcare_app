@@ -12,13 +12,7 @@
 * **汎用アンケート機能:** アプリ満足度調査などを自由に作成・実施可能
 * **キャラクターカスタマイズ:** ユーザーの活動に応じたアバターの見た目変化
 * **チャットボット:** Gemini APIを利用したAIチャット機能
-## 🛠️ 技術スタック
 
-* **フレームワーク:** Django
-* **API:** Django REST Framework
-* **認証:** Simple JWT (JSON Web Token)
-* **データベース:** SQLite (開発用)
-* **外部API連携:** Google Gemini, Open Food Facts
 
 ## 🚀 セットアップ手順
 
@@ -55,14 +49,7 @@
     python manage.py createsuperuser
     ```
 
-7.  **初期データの一括インポート（任意）:**
-    献立提案機能の初期データを登録するために、特別な管理コマンドを用意しています。
-    プロジェクトのルートディレクトリに`recipes.csv`と`ingredients.csv`を配置した後、以下のコマンドを実行してください。
-    ```bash
-    python manage.py import_recipes
-    ```
-
-8.  **開発サーバーの起動:**
+7.  **開発サーバーの起動:**
     ```bash
     python manage.py runserver
     ```
