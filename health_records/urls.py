@@ -1,31 +1,38 @@
 # health_records/urls.py
 
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter # ルーターをインポート
-from .views import HealthRecordViewSet # 先ほど作成したHealthRecordViewSetをインポート
-from .views import HealthRecordViewSet, HealthSummaryView, SleepRecordViewSet
-from .views import HealthRecordViewSet, HealthSummaryView, StepCountRankingView
-from .views import HealthRecordViewSet, HealthSummaryView, SleepChronotypeSurveyViewSet, SleepSessionViewSet
-# DefaultRouterのインスタンスを作成
+from rest_framework.routers import DefaultRouter
+
+# 必要なビューをまとめてインポートします
+from .views import (
+    HealthRecordViewSet,
+    SleepRecordViewSet,
+    SleepSessionViewSet,
+    SleepChronotypeSurveyViewSet, # このViewSetも登録が必要だと思われます
+    HealthSummaryView,
+    StepCountRankingView
+)
+
+# --- ルーターの設定 ---
 router = DefaultRouter()
 
-# HealthRecordViewSetをルーターに登録
-# 'records' がこのビューセットのURLのプレフィックスになります。
-# 例: /api/health/records/ や /api/health/records/{pk}/ など
+# 各ViewSetをルーターに登録します
+# 重複していた'records'の登録を1つにまとめます
 router.register(r'records', HealthRecordViewSet, basename='healthrecord')
-# basenameは、querysetがビューセットに直接定義されていない場合や、
-# URLの名前をカスタマイズしたい場合に指定します。
-# 通常、ModelViewSetでquerysetが設定されていれば自動で推測されますが、
-# 明示しておくと確実です。
-router.register(r'sleep', SleepRecordViewSet, basename='sleeprecord') 
-router.register(r'records', HealthRecordViewSet, basename='healthrecord')
-router.register(r'sleep-sessions', SleepSessionViewSet, basename='sleepsession') 
-app_name = 'health_records' # アプリケーションの名前空間を定義（推奨）
+router.register(r'sleep', SleepRecordViewSet, basename='sleeprecord')
+router.register(r'sleep-sessions', SleepSessionViewSet, basename='sleepsession')
+# 不足していたSleepChronotypeSurveyViewSetを登録します
+router.register(r'sleep-surveys', SleepChronotypeSurveyViewSet, basename='sleepchronotypesurvey')
+
+
+# --- URLパターンの定義 ---
+app_name = 'health_records'
 
 urlpatterns = [
-    # router.urls で生成されたURLパターンをこのリストに含めます
-     path('steps/ranking/<str:date_str>/', StepCountRankingView.as_view(), name='steps-ranking'),
+    # ViewSetに基づかないカスタムURLを先に定義します
     path('summary/', HealthSummaryView.as_view(), name='health-summary'),
-    path('', include(router.urls)),
+    path('steps/ranking/<str:date_str>/', StepCountRankingView.as_view(), name='steps-ranking'),
     
+    # ルーターが自動生成したURLを最後にまとめてインクルードします
+    path('', include(router.urls)),
 ]

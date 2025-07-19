@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ダッシュボード</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container" style="width: 800px; display: flex; flex-direction: column; gap: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>ようこそ、<span id="username">...</span>さん！</h1>
+            <button id="logout-button">ログアウト</button>
+        </div>
+        
+        <div class="charts-container" style="display: flex; justify-content: space-around; align-items: center;">
+            
+            <div class="chart-box" style="width: 45%;">
+                <h2 style="text-align: center;">今日の歩数</h2>
+                <canvas id="stepsChart"></canvas>
+            </div>
+
+            <div class="chart-box" style="width: 45%;">
+                <h2 style="text-align: center;">週間睡眠記録</h2>
+                <canvas id="sleepChart"></canvas>
+            </div>
+
+        </div>
+        <div class="profile-info">
+            <p><strong>目標体重:</strong> <span id="target-weight">...</span> kg</p>
+            <p><strong>目標歩数/日:</strong> <span id="target-steps">...</span> 歩</p>
+        </div>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>

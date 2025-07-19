@@ -29,6 +29,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 
     # 私たちが作成したAPI用のURL
+    path('api/accounts/', include('accounts.urls')),
     path('api/auth/', include('accounts.urls', namespace='accounts')),
     path('api/health/', include('health_records.urls', namespace='health_records')),
     path('api/meals/', include('meals.urls', namespace='meals')),

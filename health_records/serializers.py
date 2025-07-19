@@ -106,3 +106,17 @@ class SleepSessionSerializer(serializers.ModelSerializer):
         model = SleepSession
         fields = '__all__'
         read_only_fields = ('user', 'sleep_score') # ユーザーとスコアは自動で設定
+
+
+# SleepChronotypeSurveyモデル用のシリアライザー
+class SleepChronotypeSurveySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SleepChronotypeSurvey
+        fields = '__all__'
+
+# SleepSessionモデル用のシリアライザー
+class SleepSessionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SleepSession
+        fields = '__all__'
+        read_only_fields = ('user', 'sleep_score', 'recorded_at')

@@ -1,8 +1,8 @@
 # meals/urls.py
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import MealLogViewSet, FoodMasterViewSet, DailyNutritionReportView,AddMealFromBarcodeView
-from .views import MealViewSet, AddMealFromBarcodeView, DailyNutritionSummaryView # 新しいビューをインポート
+from .views import MealLogViewSet, FoodMasterViewSet,AddMealFromBarcodeView
+from .views import MealLogViewSet, AddMealFromBarcodeView, DailyNutritionSummaryView # 新しいビューをインポート
 router = DefaultRouter()
 router.register(r'logs', MealLogViewSet, basename='meallog')
 router.register(r'foods', FoodMasterViewSet, basename='foodmaster') # ← ★この行を追加

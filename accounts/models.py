@@ -1,7 +1,7 @@
 from django.db import models
 from django.conf import settings # settings.AUTH_USER_MODEL を使うため
 # from django.contrib.auth.models import User # もし標準Userモデルを直接参照する場合
-
+from django.utils import timezone # timezoneをインポート
 
 class UserProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
@@ -134,3 +134,27 @@ class UserDevice(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s {self.get_platform_display()} Device"
+    
+
+
+class HealthData(models.Model):
+    """日々の健康データを記録するモデル"""
+    # どのユーザーのデータか、UserProfileに紐づける
+    user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='health_data')
+
+    # いつのデータか記録するための日付
+    date = models.DateField(default=timezone.now, verbose_name='日付')
+
+    # 歩数
+    steps = models.PositiveIntegerField(default=0, verbose_name='歩数')
+
+    # 睡眠時間（分単位で記録するのがおすすめ）
+    sleep_minutes = models.PositiveIntegerField(default=0, verbose_name='睡眠時間（分）')
+
+    class Meta:
+        # 日付とユーザーの組み合わせが重複しないようにする
+        unique_together = ('user_profile', 'date')
+        ordering = ['-date'] # 日付の降順で並べる
+
+    def __str__(self):
+        return f"{self.user_profile.user.username} - {self.date}"
