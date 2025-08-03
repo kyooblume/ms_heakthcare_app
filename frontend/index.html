@@ -4,24 +4,444 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ヘルスケアアプリ ログイン</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 背景アニメーション */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><pattern id="smallGrid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23smallGrid)"/></svg>');
+            animation: drift 20s linear infinite;
+            opacity: 0.3;
+        }
+
+        @keyframes drift {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            100% { transform: translate(-50px, -50px) rotate(360deg); }
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 3rem;
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo i {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .logo h1 {
+            color: #333;
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .logo p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            z-index: 2;
+        }
+
+        input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            background: white;
+        }
+
+        .login-button {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .login-button:active {
+            transform: translateY(0);
+        }
+
+        .login-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .login-button.loading {
+            pointer-events: none;
+        }
+
+        .login-button .spinner {
+            display: none;
+            margin-right: 0.5rem;
+        }
+
+        .login-button.loading .spinner {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            color: #e74c3c;
+            text-align: center;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(231, 76, 60, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid #e74c3c;
+            display: none;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .demo-credentials {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 15px;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            border-left: 4px solid #667eea;
+        }
+
+        .demo-credentials h4 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .demo-credentials p {
+            color: #666;
+            font-size: 0.8rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .demo-credentials code {
+            background: rgba(255, 255, 255, 0.7);
+            padding: 0.2rem 0.4rem;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                margin: 1rem;
+                padding: 2rem;
+            }
+
+            .logo h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="login-container">
-        <h2>ログイン</h2>
+        <div class="logo">
+            <i class="fas fa-heartbeat"></i>
+            <h1>ヘルスケアアプリ</h1>
+            <p>あなたの健康をサポートします</p>
+        </div>
+        
         <form id="login-form">
             <div class="input-group">
                 <label for="username">ユーザー名</label>
-                <input type="text" id="username" name="username" required>
+                <div class="input-wrapper">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="username" name="username" required autocomplete="username">
+                </div>
             </div>
+            
             <div class="input-group">
                 <label for="password">パスワード</label>
-                <input type="password" id="password" name="password" required>
+                <div class="input-wrapper">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                </div>
             </div>
-            <button type="submit">ログイン</button>
+            
+            <button type="submit" class="login-button" id="login-button">
+                <i class="fas fa-spinner spinner"></i>
+                <span class="button-text">ログイン</span>
+            </button>
         </form>
-        <p id="error-message" class="error"></p>
+        
+        <div id="error-message" class="error">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span class="error-text"></span>
+        </div>
+
+        <div class="demo-credentials">
+            <h4><i class="fas fa-info-circle"></i> デモ用認証情報</h4>
+            <p>ユーザー名: <code>demo</code></p>
+            <p>パスワード: <code>demo123</code></p>
+        </div>
     </div>
-    <script src="script.js"></script>
+
+    <script>
+        // DOM要素の取得
+        const loginForm = document.getElementById('login-form');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const loginButton = document.getElementById('login-button');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = errorMessage.querySelector('.error-text');
+        const buttonText = loginButton.querySelector('.button-text');
+
+        // ページ読み込み時の処理
+        document.addEventListener('DOMContentLoaded', function() {
+            // 既にログインしている場合はリダイレクト
+            if (localStorage.getItem('accessToken')) {
+                window.location.href = 'dashboard.html';
+                return;
+            }
+
+            // フォーカスの設定
+            usernameInput.focus();
+        });
+
+        // エラー表示関数
+        function showError(message) {
+            errorText.textContent = message;
+            errorMessage.classList.add('show');
+            
+            // 3秒後に自動で隠す
+            setTimeout(() => {
+                errorMessage.classList.remove('show');
+            }, 5000);
+        }
+
+        // エラー非表示関数
+        function hideError() {
+            errorMessage.classList.remove('show');
+        }
+
+        // ローディング状態の切り替え
+        function setLoading(isLoading) {
+            if (isLoading) {
+                loginButton.classList.add('loading');
+                loginButton.disabled = true;
+                buttonText.textContent = 'ログイン中...';
+            } else {
+                loginButton.classList.remove('loading');
+                loginButton.disabled = false;
+                buttonText.textContent = 'ログイン';
+            }
+        }
+
+        // 入力時のエラー非表示
+        usernameInput.addEventListener('input', hideError);
+        passwordInput.addEventListener('input', hideError);
+
+        // Enterキーでのフォーム送信
+        passwordInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                loginForm.dispatchEvent(new Event('submit'));
+            }
+        });
+
+        // フォーム送信処理
+        loginForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            // 入力値の取得と検証
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value;
+
+            if (!username) {
+                showError('ユーザー名を入力してください。');
+                usernameInput.focus();
+                return;
+            }
+
+            if (!password) {
+                showError('パスワードを入力してください。');
+                passwordInput.focus();
+                return;
+            }
+
+            // ローディング開始
+            setLoading(true);
+            hideError();
+
+            try {
+                // APIリクエスト送信
+                const response = await fetch('http://127.0.0.1:8000/api/token/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password,
+                    }),
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // ログイン成功
+                    console.log('ログイン成功:', data);
+                    
+                    // トークンを保存
+                    localStorage.setItem('accessToken', data.access);
+                    if (data.refresh) {
+                        localStorage.setItem('refreshToken', data.refresh);
+                    }
+                    
+                    // 成功アニメーション
+                    buttonText.textContent = 'ログイン成功！';
+                    loginButton.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                    
+                    // 少し待ってからリダイレクト
+                    setTimeout(() => {
+                        window.location.href = 'onboarding.html';
+                    }, 1000);
+
+                } else {
+                    // ログイン失敗
+                    console.error('ログイン失敗:', data);
+                    
+                    let errorMessage = 'ログインに失敗しました。';
+                    
+                    if (response.status === 401) {
+                        errorMessage = 'ユーザー名またはパスワードが間違っています。';
+                    } else if (data.detail) {
+                        errorMessage = data.detail;
+                    } else if (data.non_field_errors) {
+                        errorMessage = data.non_field_errors[0];
+                    }
+                    
+                    showError(errorMessage);
+                    passwordInput.select(); // パスワードフィールドを選択状態に
+                }
+            } catch (error) {
+                // 通信エラー
+                console.error('通信エラー:', error);
+                showError('サーバーに接続できませんでした。インターネット接続を確認してください。');
+            } finally {
+                // ローディング終了
+                setLoading(false);
+            }
+        });
+
+        // エラーハンドリング
+        window.addEventListener('error', function(e) {
+            console.error('JavaScript エラー:', e.error);
+            showError('予期しないエラーが発生しました。ページを再読み込みしてください。');
+        });
+
+        // ネットワークエラーハンドリング
+        window.addEventListener('online', function() {
+            hideError();
+        });
+
+        window.addEventListener('offline', function() {
+            showError('インターネット接続が切断されました。');
+        });
+    </script>
 </body>
 </html>

@@ -31,7 +31,7 @@ urlpatterns = [
     path('', TemplateView.as_view(template_name='index.html'), name='home'),
     # 私たちが作成したAPI用のURL
     path('api/accounts/', include('accounts.urls')),
-    path('api/auth/', include('accounts.urls', namespace='accounts')),
+    #path('api/auth/', include('accounts.urls', namespace='accounts')),
     path('api/health/', include('health_records.urls', namespace='health_records')),
     path('api/meals/', include('meals.urls', namespace='meals')),
     path('api/chat/', include('chat.urls')),
@@ -42,5 +42,7 @@ urlpatterns = [
     # トークン認証用のURL
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    
+    path('onboarding.html', TemplateView.as_view(template_name='onboarding.html'), name='onboarding'),
+    path('dashboard.html', TemplateView.as_view(template_name='dashboard.html'), name='dashboard'),
 ]
+    

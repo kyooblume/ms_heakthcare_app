@@ -4,56 +4,632 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ダッシュボード</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 1.8rem;
+        }
+
+        .logout-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+        }
+
+        .chart-center-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 0.5rem;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            color: #666;
+        }
+
+        .error {
+            color: #e74c3c;
+            text-align: center;
+            padding: 1rem;
+            background: rgba(231, 76, 60, 0.1);
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+
+        .navigation-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .nav-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-decoration: none;
+            color: #333;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-card h4 {
+            color: #667eea;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .profile-info {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .profile-info h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container" style="width: 90%; max-width: 1200px; display: flex; flex-direction: column; gap: 30px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h1>ようこそ、<span id="username">...</span>さん！</h1>
-            <button id="logout-button">ログアウト</button>
+    <div class="header">
+        <h1><i class="fas fa-heartbeat"></i> ヘルスケアダッシュボード</h1>
+        <button id="logout-button" class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i> ログアウト
+        </button>
+    </div>
+
+    <div class="container">
+        <div id="welcome-message" class="card" style="margin-bottom: 2rem;">
+            <h3><i class="fas fa-user"></i> ようこそ、<span id="username">読み込み中...</span>さん！</h3>
         </div>
-        
-        <div class="charts-container" style="display: flex; flex-wrap: wrap; justify-content: space-around; gap: 20px;">
-            
-                    <div class="charts-container" style="display: flex; flex-wrap: wrap; justify-content: space-around; gap: 20px;">
-            
-            <div class="chart-box" style="width: 30%; min-width: 250px;">
-                <h2 style="text-align: center;">今日の歩数</h2>
-                <div style="position: relative;">
+
+        <div class="dashboard-grid">
+            <!-- 歩数カード -->
+            <div class="card">
+                <h3><i class="fas fa-walking"></i> 今日の歩数</h3>
+                <div class="chart-container">
                     <canvas id="stepsChart"></canvas>
-                    <div id="steps-text" style="position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%); font-size: 24px; font-weight: bold;"></div>
+                    <div id="steps-text" class="chart-center-text">
+                        <div class="stat-value">-</div>
+                        <div class="stat-label">歩</div>
+                    </div>
                 </div>
-                 <div class="steps-summary" style="text-align: center; margin-top: 15px;">
-                    <p>週平均: <span id="weekly-avg-steps">...</span> 歩</p>
-                    <p>月平均: <span id="monthly-avg-steps">...</span> 歩</p>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-value" id="weekly-avg-steps">-</div>
+                        <div class="stat-label">週平均</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="monthly-avg-steps">-</div>
+                        <div class="stat-label">月平均</div>
+                    </div>
                 </div>
             </div>
-            
-            <div class="health-card card-link">
 
+            <!-- 睡眠カード -->
+            <div class="card">
+                <h3><i class="fas fa-bed"></i> 週間睡眠記録</h3>
+                <div class="chart-container">
+                    <canvas id="sleepChart"></canvas>
+                </div>
+            </div>
+
+            <!-- 栄養カード -->
+            <div class="card" style="grid-column: 1 / -1;">
+                <h3><i class="fas fa-utensils"></i> 今日の栄養バランス</h3>
+                <div class="chart-container">
+                    <canvas id="nutritionChart"></canvas>
+                </div>
+            </div>
         </div>
-            <div class="chart-box" style="width: 65%; min-width: 400px;">
-                <h2 style="text-align: center;">週間睡眠記録</h2>
-                <canvas id="sleepChart"></canvas>
-            </div>
 
-            <div class="chart-box" style="width: 100%;">
-                <h2 style="text-align: center;">今日の栄養素バランス</h2>
-                <canvas id="nutritionChart"></canvas>
-            </div>
-            <a href="nutrition.html">
-                <h3>食事と栄養</h3>
-                <p>今日の栄養バランスを確認し、おすすめの献立を見にいく</p>
+        <!-- ナビゲーションカード -->
+        <div class="navigation-cards">
+            <a href="nutrition.html" class="nav-card">
+                <h4><i class="fas fa-apple-alt"></i> 食事と栄養</h4>
+                <p>今日の栄養バランスを確認し、おすすめの献立を見る</p>
+            </a>
+            <a href="health-records.html" class="nav-card">
+                <h4><i class="fas fa-chart-line"></i> 健康記録</h4>
+                <p>体重や血圧などの健康データを記録・確認</p>
+            </a>
+            <a href="reports.html" class="nav-card">
+                <h4><i class="fas fa-file-medical"></i> レポート</h4>
+                <p>健康状態の詳細な分析とレポートを確認</p>
             </a>
         </div>
 
+        <!-- プロフィール情報 -->
         <div class="profile-info">
-            <p><strong>目標体重:</strong> <span id="target-weight">...</span> kg</p>
-            <p><strong>目標歩数/日:</strong> <span id="target-steps">...</span> 歩</p>
+            <h3><i class="fas fa-target"></i> 目標設定</h3>
+            <div class="profile-grid">
+                <div class="stat-item">
+                    <div class="stat-value" id="target-weight">-</div>
+                    <div class="stat-label">目標体重 (kg)</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="target-steps">-</div>
+                    <div class="stat-label">目標歩数/日</div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <script src="dashboard.js"></script>
+    <script>
+        // グローバル変数
+        const token = localStorage.getItem('accessToken');
+        let charts = {}; // チャートインスタンスを保存
+
+        // DOM要素
+        const elements = {
+            username: document.getElementById('username'),
+            targetWeight: document.getElementById('target-weight'),
+            targetSteps: document.getElementById('target-steps'),
+            logoutButton: document.getElementById('logout-button'),
+            stepsText: document.getElementById('steps-text'),
+            weeklyAvgSteps: document.getElementById('weekly-avg-steps'),
+            monthlyAvgSteps: document.getElementById('monthly-avg-steps')
+        };
+
+        // 認証チェック
+        if (!token) {
+            alert('ログインが必要です。');
+            window.location.href = 'index.html';
+        }
+
+        // ページ読み込み時の処理
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeDashboard();
+        });
+
+        // ダッシュボード初期化
+        async function initializeDashboard() {
+            try {
+                await Promise.all([
+                    fetchProfile(),
+                    fetchDashboardData()
+                ]);
+            } catch (error) {
+                console.error('ダッシュボードの初期化エラー:', error);
+                showError('データの読み込みに失敗しました。');
+            }
+        }
+
+        // プロフィール情報取得
+        async function fetchProfile() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/accounts/profile/', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        handleAuthError();
+                        return;
+                    }
+                    throw new Error('プロフィール取得失敗');
+                }
+                
+                const data = await response.json();
+                elements.username.textContent = data.username || 'ユーザー';
+                elements.targetWeight.textContent = data.target_weight || '未設定';
+                elements.targetSteps.textContent = data.target_steps_per_day || '未設定';
+            } catch (error) {
+                console.error('プロフィール取得エラー:', error);
+                elements.username.textContent = 'ユーザー';
+            }
+        }
+
+        // ダッシュボードデータ取得
+        async function fetchDashboardData() {
+            try {
+                // まずは個別のAPIを試す
+                await Promise.all([
+                    fetchDailyActivity(),
+                    fetchWeeklySleep(),
+                    fetchDailyNutrition()
+                ]);
+            } catch (error) {
+                console.error('ダッシュボードデータ取得エラー:', error);
+                // フォールバックとして統合APIを試す
+                try {
+                    await fetchDashboardSummary();
+                } catch (summaryError) {
+                    console.error('統合API取得エラー:', summaryError);
+                    showError('データの取得に失敗しました。');
+                }
+            }
+        }
+
+        // 今日の活動量データ取得
+        async function fetchDailyActivity() {
+            const today = new Date().toISOString().split('T')[0];
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/reports/activity/daily/${today}/`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    createStepsChart(data.steps.actual, data.steps.target);
+                    updateStepsDisplay(data.steps.actual);
+                } else {
+                    createStepsChart(0, 10000); // デフォルト値
+                }
+            } catch (error) {
+                console.error('活動量データ取得エラー:', error);
+                createStepsChart(0, 10000);
+            }
+        }
+
+        // 週間睡眠データ取得
+        async function fetchWeeklySleep() {
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/reports/sleep/weekly/`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    createSleepChart(data);
+                } else {
+                    createSleepChart({}); // 空データでチャート作成
+                }
+            } catch (error) {
+                console.error('睡眠データ取得エラー:', error);
+                createSleepChart({});
+            }
+        }
+
+        // 今日の栄養データ取得
+        async function fetchDailyNutrition() {
+            const today = new Date().toISOString().split('T')[0];
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/meals/summary/daily/${today}/`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const rawData = await response.json();
+                    const data = rawData.summary || rawData;
+                    createNutritionChart(data);
+                } else {
+                    createNutritionChart(null); // デフォルトデータでチャート作成
+                }
+            } catch (error) {
+                console.error('栄養データ取得エラー:', error);
+                createNutritionChart(null);
+            }
+        }
+
+        // 統合ダッシュボードデータ取得（フォールバック）
+        async function fetchDashboardSummary() {
+            const response = await fetch(`http://127.0.0.1:8000/api/reports/dashboard-summary/`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (!response.ok) throw new Error('ダッシュボードサマリー取得失敗');
+            
+            const data = await response.json();
+            
+            // 活動データ
+            if (data.activity) {
+                createStepsChart(data.activity.today_steps, data.activity.target_steps);
+                updateStepsDisplay(data.activity.today_steps);
+                elements.weeklyAvgSteps.textContent = data.activity.weekly_average_steps || '-';
+                elements.monthlyAvgSteps.textContent = data.activity.monthly_average_steps || '-';
+            }
+            
+            // 睡眠データ
+            if (data.sleep && data.sleep.weekly_summary) {
+                createSleepChart(data.sleep.weekly_summary);
+            }
+            
+            // 栄養データ
+            if (data.nutrition) {
+                createNutritionChart(data.nutrition);
+            }
+        }
+
+        // 歩数チャート作成
+        function createStepsChart(actual, target) {
+            const ctx = document.getElementById('stepsChart').getContext('2d');
+            
+            if (charts.steps) {
+                charts.steps.destroy();
+            }
+            
+            charts.steps = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [actual, Math.max(0, target - actual)],
+                        backgroundColor: ['#667eea', '#f0f0f0'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    cutout: '70%',
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        // 睡眠チャート作成
+        function createSleepChart(data) {
+            const ctx = document.getElementById('sleepChart').getContext('2d');
+            
+            if (charts.sleep) {
+                charts.sleep.destroy();
+            }
+            
+            const labels = Object.keys(data).length > 0 
+                ? Object.keys(data).map(date => new Date(date).toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' }))
+                : ['月', '火', '水', '木', '金', '土', '日'];
+            
+            const values = Object.keys(data).length > 0 
+                ? Object.values(data)
+                : [7, 6.5, 8, 7.5, 6, 8.5, 7];
+            
+            charts.sleep = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '睡眠時間 (h)',
+                        data: values,
+                        backgroundColor: '#5bc0de',
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            max: 10
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        // 栄養チャート作成
+        function createNutritionChart(data) {
+            const ctx = document.getElementById('nutritionChart').getContext('2d');
+            
+            if (charts.nutrition) {
+                charts.nutrition.destroy();
+            }
+            
+            const defaultData = {
+                calories: { actual: 1800, target: 2000 },
+                protein: { actual: 60, target: 80 },
+                fat: { actual: 50, target: 65 },
+                carbohydrate: { actual: 200, target: 250 }
+            };
+            
+            const nutritionData = data || defaultData;
+            
+            charts.nutrition = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['カロリー(kcal)', 'タンパク質(g)', '脂質(g)', '炭水化物(g)'],
+                    datasets: [
+                        {
+                            label: '目標値',
+                            data: [
+                                nutritionData.calories?.target || 0,
+                                nutritionData.protein?.target || 0,
+                                nutritionData.fat?.target || 0,
+                                nutritionData.carbohydrate?.target || 0
+                            ],
+                            backgroundColor: '#f0ad4e',
+                            borderRadius: 5
+                        },
+                        {
+                            label: '摂取量',
+                            data: [
+                                nutritionData.calories?.actual || 0,
+                                nutritionData.protein?.actual || 0,
+                                nutritionData.fat?.actual || 0,
+                                nutritionData.carbohydrate?.actual || 0
+                            ],
+                            backgroundColor: '#667eea',
+                            borderRadius: 5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: { 
+                        y: { beginAtZero: true }
+                    },
+                    plugins: { 
+                        legend: { position: 'top' }
+                    },
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        // 歩数表示更新
+        function updateStepsDisplay(steps) {
+            elements.stepsText.querySelector('.stat-value').textContent = steps.toLocaleString();
+        }
+
+        // エラー表示
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+            document.querySelector('.container').insertBefore(errorDiv, document.querySelector('.dashboard-grid'));
+        }
+
+        // 認証エラー処理
+        function handleAuthError() {
+            localStorage.removeItem('accessToken');
+            alert('セッションが期限切れです。再度ログインしてください。');
+            window.location.href = 'index.html';
+        }
+
+        // ログアウト処理
+        elements.logoutButton.addEventListener('click', () => {
+            localStorage.removeItem('accessToken');
+            alert('ログアウトしました。');
+            window.location.href = 'index.html';
+        });
+
+        // エラーハンドリング
+        window.addEventListener('error', function(e) {
+            console.error('JavaScript エラー:', e.error);
+        });
+    </script>
 </body>
 </html>

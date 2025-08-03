@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ダッシュボード</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container" style="width: 90%; max-width: 1200px; display: flex; flex-direction: column; gap: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>ようこそ、<span id="username">...</span>さん！</h1>
+            <button id="logout-button">ログアウト</button>
+        </div>
+        
+        <div class="charts-container" style="display: flex; flex-wrap: wrap; justify-content: space-around; gap: 20px;">
+            
+                    <div class="charts-container" style="display: flex; flex-wrap: wrap; justify-content: space-around; gap: 20px;">
+            
+            <div class="chart-box" style="width: 30%; min-width: 250px;">
+                <h2 style="text-align: center;">今日の歩数</h2>
+                <div style="position: relative;">
+                    <canvas id="stepsChart"></canvas>
+                    <div id="steps-text" style="position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%); font-size: 24px; font-weight: bold;"></div>
+                </div>
+                 <div class="steps-summary" style="text-align: center; margin-top: 15px;">
+                    <p>週平均: <span id="weekly-avg-steps">...</span> 歩</p>
+                    <p>月平均: <span id="monthly-avg-steps">...</span> 歩</p>
+                </div>
+            </div>
+            
+            <div class="health-card card-link">
+
+        </div>
+            <div class="chart-box" style="width: 65%; min-width: 400px;">
+                <h2 style="text-align: center;">週間睡眠記録</h2>
+                <canvas id="sleepChart"></canvas>
+            </div>
+
+            <div class="chart-box" style="width: 100%;">
+                <h2 style="text-align: center;">今日の栄養素バランス</h2>
+                <canvas id="nutritionChart"></canvas>
+            </div>
+            <a href="nutrition.html">
+                <h3>食事と栄養</h3>
+                <p>今日の栄養バランスを確認し、おすすめの献立を見にいく</p>
+            </a>
+        </div>
+
+        <div class="profile-info">
+            <p><strong>目標体重:</strong> <span id="target-weight">...</span> kg</p>
+            <p><strong>目標歩数/日:</strong> <span id="target-steps">...</span> 歩</p>
+        </div>
+    </div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>

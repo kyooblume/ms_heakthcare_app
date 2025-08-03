@@ -4,37 +4,610 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>食事と栄養</title>
-    <link rel="stylesheet" href="dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 1.8rem;
+        }
+
+        .back-link {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .nutrition-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .recipe-container {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .recipe-card {
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 15px;
+            padding: 1rem;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .recipe-card:hover {
+            transform: translateX(5px);
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .recipe-title {
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .recipe-nutrients {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .nutrient-item {
+            text-align: center;
+            padding: 0.25rem;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            font-size: 0.8rem;
+        }
+
+        .nutrient-value {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .error {
+            color: #e74c3c;
+            text-align: center;
+            padding: 1rem;
+            background: rgba(231, 76, 60, 0.1);
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+
+        .nutrition-summary {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .summary-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+        }
+
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .summary-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .nutrition-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .recipe-nutrients {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
 </head>
 <body>
-    <header class="header">
-        <h1>食事と栄養</h1>
-        <a href="dashboard.html" class="back-link">ダッシュボードに戻る</a>
-    </header>
+    <div class="header">
+        <h1><i class="fas fa-utensils"></i> 食事と栄養</h1>
+        <a href="dashboard.html" class="back-link">
+            <i class="fas fa-arrow-left"></i> ダッシュボードに戻る
+        </a>
+    </div>
 
-    <main class="dashboard-grid">
-        <div class="health-card card-nutrition">
-            <div class="card-header">
-                <h3>今日の栄養バランス</h3>
-            </div>
-            <div class="card-body">
-                <div class="chart-container-bar">
-                    <canvas id="nutritionChart"></canvas>
+    <div class="container">
+        <!-- 栄養サマリー -->
+        <div class="nutrition-summary">
+            <h3><i class="fas fa-chart-pie"></i> 今日の栄養サマリー</h3>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="summary-value" id="calories-actual">-</div>
+                    <div class="summary-label">カロリー (kcal)</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="calories-progress"></div>
+                    </div>
+                    <small id="calories-target">目標: - kcal</small>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value" id="protein-actual">-</div>
+                    <div class="summary-label">タンパク質 (g)</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="protein-progress"></div>
+                    </div>
+                    <small id="protein-target">目標: - g</small>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value" id="fat-actual">-</div>
+                    <div class="summary-label">脂質 (g)</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="fat-progress"></div>
+                    </div>
+                    <small id="fat-target">目標: - g</small>
+                </div>
+                <div class="summary-item">
+                    <div class="summary-value" id="carb-actual">-</div>
+                    <div class="summary-label">炭水化物 (g)</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="carb-progress"></div>
+                    </div>
+                    <small id="carb-target">目標: - g</small>
                 </div>
             </div>
         </div>
 
-        <div class="health-card card-suggestion">
-            <div class="card-header">
-                <h3 id="suggestion-message">今日の献立提案</h3>
+        <div class="nutrition-grid">
+            <!-- 栄養チャート -->
+            <div class="card">
+                <h3><i class="fas fa-chart-bar"></i> 栄養バランス</h3>
+                <div class="chart-container">
+                    <canvas id="nutritionChart"></canvas>
+                </div>
             </div>
-            <div id="recipe-suggestions" class="card-body recipe-container">
-                <p>おすすめの献立を読み込んでいます...</p>
+
+            <!-- レシピ提案 -->
+            <div class="card">
+                <h3 id="suggestion-message"><i class="fas fa-lightbulb"></i> 今日の献立提案</h3>
+                <div id="recipe-suggestions" class="recipe-container">
+                    <div class="loading">
+                        <i class="fas fa-spinner fa-spin"></i> おすすめの献立を読み込んでいます...
+                    </div>
+                </div>
             </div>
         </div>
-    </main>
+    </div>
 
-    <script src="nutrition.js"></script>
+    <script>
+        // グローバル変数
+        const token = localStorage.getItem('accessToken');
+        let nutritionChart = null;
+
+        // DOM要素
+        const elements = {
+            nutritionChart: document.getElementById('nutritionChart'),
+            suggestionMessage: document.getElementById('suggestion-message'),
+            recipeSuggestions: document.getElementById('recipe-suggestions'),
+            caloriesActual: document.getElementById('calories-actual'),
+            caloriesTarget: document.getElementById('calories-target'),
+            caloriesProgress: document.getElementById('calories-progress'),
+            proteinActual: document.getElementById('protein-actual'),
+            proteinTarget: document.getElementById('protein-target'),
+            proteinProgress: document.getElementById('protein-progress'),
+            fatActual: document.getElementById('fat-actual'),
+            fatTarget: document.getElementById('fat-target'),
+            fatProgress: document.getElementById('fat-progress'),
+            carbActual: document.getElementById('carb-actual'),
+            carbTarget: document.getElementById('carb-target'),
+            carbProgress: document.getElementById('carb-progress')
+        };
+
+        // 認証チェック
+        if (!token) {
+            alert('ログインが必要です。');
+            window.location.href = 'index.html';
+        }
+
+        // ページ読み込み時の処理
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeNutritionPage();
+        });
+
+        // 栄養ページ初期化
+        async function initializeNutritionPage() {
+            try {
+                await Promise.all([
+                    fetchDailyNutrition(),
+                    fetchRecipeSuggestions()
+                ]);
+            } catch (error) {
+                console.error('栄養ページの初期化エラー:', error);
+                showError('データの読み込みに失敗しました。');
+            }
+        }
+
+        // 今日の栄養データ取得
+        async function fetchDailyNutrition() {
+            const today = new Date().toISOString().split('T')[0];
+            
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/meals/summary/daily/${today}/`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                console.log('栄養データレスポンスステータス:', response.status);
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        handleAuthError();
+                        return;
+                    }
+                    throw new Error('栄養素取得失敗');
+                }
+
+                const rawData = await response.json();
+                console.log('受信した栄養データ:', rawData);
+
+                const data = rawData.summary || rawData;
+                
+                // サマリー表示を更新
+                updateNutritionSummary(data);
+                
+                // チャートを作成
+                createNutritionChart(data);
+
+            } catch (error) {
+                console.error('栄養データの取得エラー:', error);
+                
+                // フォールバックデータで表示
+                const fallbackData = {
+                    calories: { actual: 0, target: 2000 },
+                    protein: { actual: 0, target: 80 },
+                    fat: { actual: 0, target: 65 },
+                    carbohydrate: { actual: 0, target: 250 }
+                };
+                
+                updateNutritionSummary(fallbackData);
+                createNutritionChart(fallbackData);
+            }
+        }
+
+        // 栄養サマリー更新
+        function updateNutritionSummary(data) {
+            const nutrients = [
+                { key: 'calories', actual: elements.caloriesActual, target: elements.caloriesTarget, progress: elements.caloriesProgress, unit: 'kcal' },
+                { key: 'protein', actual: elements.proteinActual, target: elements.proteinTarget, progress: elements.proteinProgress, unit: 'g' },
+                { key: 'fat', actual: elements.fatActual, target: elements.fatTarget, progress: elements.fatProgress, unit: 'g' },
+                { key: 'carbohydrate', actual: elements.carbActual, target: elements.carbTarget, progress: elements.carbProgress, unit: 'g' }
+            ];
+
+            nutrients.forEach(nutrient => {
+                const actualValue = data[nutrient.key]?.actual || 0;
+                const targetValue = data[nutrient.key]?.target || 0;
+                const percentage = targetValue > 0 ? Math.min((actualValue / targetValue) * 100, 100) : 0;
+
+                nutrient.actual.textContent = actualValue.toLocaleString();
+                nutrient.target.textContent = `目標: ${targetValue.toLocaleString()} ${nutrient.unit}`;
+                nutrient.progress.style.width = `${percentage}%`;
+            });
+        }
+
+        // 栄養チャート作成
+        function createNutritionChart(data) {
+            const ctx = elements.nutritionChart.getContext('2d');
+            
+            if (nutritionChart) {
+                nutritionChart.destroy();
+            }
+
+            const chartData = {
+                calories: data.calories || { actual: 0, target: 2000 },
+                protein: data.protein || { actual: 0, target: 80 },
+                fat: data.fat || { actual: 0, target: 65 },
+                carbohydrate: data.carbohydrate || { actual: 0, target: 250 }
+            };
+
+            nutritionChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['カロリー(kcal)', 'タンパク質(g)', '脂質(g)', '炭水化物(g)'],
+                    datasets: [
+                        {
+                            label: '目標値',
+                            data: [
+                                chartData.calories.target,
+                                chartData.protein.target,
+                                chartData.fat.target,
+                                chartData.carbohydrate.target
+                            ],
+                            backgroundColor: 'rgba(240, 173, 78, 0.8)',
+                            borderColor: '#f0ad4e',
+                            borderWidth: 2,
+                            borderRadius: 5
+                        },
+                        {
+                            label: '摂取量',
+                            data: [
+                                chartData.calories.actual,
+                                chartData.protein.actual,
+                                chartData.fat.actual,
+                                chartData.carbohydrate.actual
+                            ],
+                            backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                            borderColor: '#667eea',
+                            borderWidth: 2,
+                            borderRadius: 5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeInOutQuart'
+                    }
+                }
+            });
+        }
+
+        // レシピ提案取得
+        async function fetchRecipeSuggestions() {
+            try {
+                const response = await fetch(`http://127.0.0.1:8000/api/recipes/suggestions/`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        handleAuthError();
+                        return;
+                    }
+                    throw new Error('献立提案の取得失敗');
+                }
+
+                const data = await response.json();
+                console.log('レシピ提案データ:', data);
+                
+                displayRecipeSuggestions(data);
+
+            } catch (error) {
+                console.error('献立提案の取得エラー:', error);
+                displayFallbackRecipes();
+            }
+        }
+
+        // レシピ提案表示
+        function displayRecipeSuggestions(data) {
+            elements.suggestionMessage.innerHTML = `<i class="fas fa-lightbulb"></i> ${data.message || '今日の献立提案'}`;
+            
+            let html = '';
+            
+            if (data.recipes && data.recipes.length > 0) {
+                data.recipes.forEach(recipe => {
+                    html += createRecipeCard(recipe);
+                });
+            } else {
+                html = '<div class="error"><i class="fas fa-exclamation-circle"></i> 現在、献立の提案はありません。</div>';
+            }
+            
+            elements.recipeSuggestions.innerHTML = html;
+        }
+
+        // フォールバックレシピ表示
+        function displayFallbackRecipes() {
+            const fallbackRecipes = [
+                {
+                    name: '鶏胸肉のグリル',
+                    description: 'ヘルシーなタンパク質源',
+                    calories: 200,
+                    protein: 35,
+                    fat: 5,
+                    carbohydrate: 2
+                },
+                {
+                    name: '野菜サラダ',
+                    description: 'ビタミン・ミネラル豊富',
+                    calories: 50,
+                    protein: 2,
+                    fat: 1,
+                    carbohydrate: 10
+                },
+                {
+                    name: '玄米ご飯',
+                    description: '良質な炭水化物',
+                    calories: 150,
+                    protein: 3,
+                    fat: 1,
+                    carbohydrate: 30
+                }
+            ];
+
+            let html = '';
+            fallbackRecipes.forEach(recipe => {
+                html += createRecipeCard(recipe);
+            });
+            
+            elements.recipeSuggestions.innerHTML = html;
+        }
+
+        // レシピカード作成
+        function createRecipeCard(recipe) {
+            return `
+                <div class="recipe-card">
+                    <div class="recipe-title">${recipe.name || recipe.title || 'レシピ名'}</div>
+                    <div class="recipe-description">${recipe.description || recipe.summary || ''}</div>
+                    <div class="recipe-nutrients">
+                        <div class="nutrient-item">
+                            <div class="nutrient-value">${recipe.calories || 0}</div>
+                            <div>kcal</div>
+                        </div>
+                        <div class="nutrient-item">
+                            <div class="nutrient-value">${recipe.protein || 0}</div>
+                            <div>P (g)</div>
+                        </div>
+                        <div class="nutrient-item">
+                            <div class="nutrient-value">${recipe.fat || 0}</div>
+                            <div>F (g)</div>
+                        </div>
+                        <div class="nutrient-item">
+                            <div class="nutrient-value">${recipe.carbohydrate || recipe.carbs || 0}</div>
+                            <div>C (g)</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // エラー表示
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+            document.querySelector('.container').insertBefore(errorDiv, document.querySelector('.nutrition-grid'));
+        }
+
+        // 認証エラー処理
+        function handleAuthError() {
+            localStorage.removeItem('accessToken');
+            alert('セッションが期限切れです。再度ログインしてください。');
+            window.location.href = 'index.html';
+        }
+
+        // エラーハンドリング
+        window.addEventListener('error', function(e) {
+            console.error('JavaScript エラー:', e.error);
+        });
+    </script>
 </body>
 </html>

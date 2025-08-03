@@ -4,18 +4,628 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>初期設定 - ヘルスケアアプリ</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.1rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 2.5rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #667eea;
+        }
+
+        .loading i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .survey-header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .survey-header h2 {
+            color: #667eea;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .survey-header p {
+            color: #666;
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            margin: 2rem 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .question {
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .question:hover {
+            background: rgba(102, 126, 234, 0.1);
+            transform: translateX(5px);
+        }
+
+        .question-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-right: 1rem;
+        }
+
+        .question label {
+            display: flex;
+            align-items: flex-start;
+            font-size: 1.1rem;
+            color: #333;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+            cursor: pointer;
+        }
+
+        .scale-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .scale-label {
+            font-size: 0.8rem;
+            color: #666;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .scale-options {
+            display: flex;
+            gap: 0.5rem;
+            flex: 1;
+            justify-content: center;
+        }
+
+        .scale-option {
+            position: relative;
+        }
+
+        .scale-option input[type="radio"] {
+            appearance: none;
+            width: 40px;
+            height: 40px;
+            border: 2px solid #ddd;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .scale-option input[type="radio"]:hover {
+            border-color: #667eea;
+            transform: scale(1.1);
+        }
+
+        .scale-option input[type="radio"]:checked {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        .scale-option label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            color: #666;
+            pointer-events: none;
+            font-size: 0.9rem;
+        }
+
+        .scale-option input[type="radio"]:checked + label {
+            color: white;
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 1.2rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .submit-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .submit-button.loading {
+            pointer-events: none;
+        }
+
+        .submit-button .spinner {
+            display: none;
+            margin-right: 0.5rem;
+        }
+
+        .submit-button.loading .spinner {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+
+        .error {
+            color: #e74c3c;
+            text-align: center;
+            padding: 1rem;
+            background: rgba(231, 76, 60, 0.1);
+            border-radius: 10px;
+            margin: 1rem 0;
+            border-left: 4px solid #e74c3c;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+
+            .content-card {
+                padding: 1.5rem;
+            }
+
+            .scale-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .scale-options {
+                justify-content: space-between;
+            }
+
+            .scale-option input[type="radio"] {
+                width: 35px;
+                height: 35px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="container" style="width: 600px;">
-        <h1>ようこそ！</h1>
-        <p>より良い体験のために、いくつか質問にお答えください。</p>
-        
-        <div id="survey-content">
-            <p>読み込み中...</p>
-        </div>
-
+    <div class="header">
+        <h1><i class="fas fa-user-plus"></i> 初期設定</h1>
+        <p>より良い体験のために、いくつか質問にお答えください</p>
     </div>
-    <script src="onboarding.js"></script>
+
+    <div class="container">
+        <div class="content-card">
+            <div id="survey-content">
+                <div class="loading">
+                    <i class="fas fa-spinner"></i>
+                    <h3>読み込み中...</h3>
+                    <p>しばらくお待ちください</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // グローバル変数
+        const token = localStorage.getItem('accessToken');
+        const surveyContentDiv = document.getElementById('survey-content');
+
+        // TIPI-Jの質問項目
+        const tipiQuestions = [
+            { id: 'q1', text: '自分は、活発で、外向的だと思う', trait: 'extraversion', reverse: false },
+            { id: 'q2', text: '自分は、他人に不満をもち、もめごとを起こしやすいと思う', trait: 'agreeableness', reverse: true },
+            { id: 'q3', text: '自分は、しっかりしていて、自分を律することができると思う', trait: 'conscientiousness', reverse: false },
+            { id: 'q4', text: '自分は、心配性で、うろたえやすいと思う', trait: 'neuroticism', reverse: false },
+            { id: 'q5', text: '自分は、新しいことを受け入れ、変わった考えをもっていると思う', trait: 'openness', reverse: false },
+            { id: 'q6', text: '自分は、無口で、物静かだと思う', trait: 'extraversion', reverse: true },
+            { id: 'q7', text: '自分は、思いやりがあり、優しい人間だと思う', trait: 'agreeableness', reverse: false },
+            { id: 'q8', text: '自分は、だらしなく、うっかりしていると思う', trait: 'conscientiousness', reverse: true },
+            { id: 'q9', text: '自分は、冷静で、気分が安定していると思う', trait: 'neuroticism', reverse: true },
+            { id: 'q10', text: '自分は、発想が平凡で、独創的ではないと思う', trait: 'openness', reverse: true }
+        ];
+
+        // 認証チェック
+        if (!token) {
+            window.location.href = 'index.html';
+        }
+
+        // ページ読み込み時の処理
+        document.addEventListener('DOMContentLoaded', function() {
+            checkOnboardingStatus();
+        });
+
+        // オンボーディングステータス確認
+        async function checkOnboardingStatus() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/accounts/onboarding-status/', {
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        handleAuthError();
+                        return;
+                    }
+                    throw new Error('ステータスの取得に失敗');
+                }
+
+                const status = await response.json();
+
+                if (status.needs_big5_survey) {
+                    displayBigFiveSurvey();
+                } else {
+                    // 全ての初期設定が完了している場合
+                    showCompletionMessage();
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 2000);
+                }
+
+            } catch (error) {
+                console.error('オンボーディングステータス確認エラー:', error);
+                showError('エラーが発生しました。ページを再読み込みしてください。');
+            }
+        }
+
+        // BigFive性格診断アンケート表示
+        function displayBigFiveSurvey() {
+            let html = `
+                <div class="survey-header">
+                    <h2><i class="fas fa-brain"></i> 性格診断アンケート</h2>
+                    <p>以下の各項目について、自分にどれくらい当てはまるかを1〜7の尺度で評価してください。</p>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <form id="big5-form">
+            `;
+
+            tipiQuestions.forEach((q, index) => {
+                html += `
+                    <div class="question">
+                        <label>
+                            <span class="question-number">${index + 1}</span>
+                            ${q.text}
+                        </label>
+                        <div class="scale-container">
+                            <div class="scale-label">全く<br>当てはまらない</div>
+                            <div class="scale-options">
+                `;
+                
+                for (let i = 1; i <= 7; i++) {
+                    html += `
+                        <div class="scale-option">
+                            <input type="radio" id="${q.id}_${i}" name="${q.id}" value="${i}" required>
+                            <label for="${q.id}_${i}">${i}</label>
+                        </div>
+                    `;
+                }
+                
+                html += `
+                            </div>
+                            <div class="scale-label">非常に強く<br>当てはまる</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                    <button type="submit" class="submit-button" id="submit-button">
+                        <i class="fas fa-spinner spinner"></i>
+                        <span class="button-text">回答を送信</span>
+                    </button>
+                </form>
+                <div id="error-message" class="error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span class="error-text"></span>
+                </div>
+            `;
+
+            surveyContentDiv.innerHTML = html;
+
+            // イベントリスナーの設定
+            setupSurveyEventListeners();
+        }
+
+        // アンケートのイベントリスナー設定
+        function setupSurveyEventListeners() {
+            const form = document.getElementById('big5-form');
+            const progressFill = document.getElementById('progress-fill');
+            const submitButton = document.getElementById('submit-button');
+            
+            // 進捗バーの更新
+            form.addEventListener('change', updateProgress);
+            
+            // フォーム送信
+            form.addEventListener('submit', handleBigFiveSubmit);
+
+            function updateProgress() {
+                const totalQuestions = tipiQuestions.length;
+                const answeredQuestions = form.querySelectorAll('input[type="radio"]:checked').length;
+                const progress = (answeredQuestions / totalQuestions) * 100;
+                
+                progressFill.style.width = `${progress}%`;
+                
+                // 全て回答されたらボタンを有効化
+                if (answeredQuestions === totalQuestions) {
+                    submitButton.disabled = false;
+                    submitButton.style.opacity = '1';
+                } else {
+                    submitButton.disabled = true;
+                    submitButton.style.opacity = '0.7';
+                }
+            }
+
+            // 初期状態では送信ボタンを無効化
+            submitButton.disabled = true;
+            submitButton.style.opacity = '0.7';
+        }
+
+        // BigFive回答送信処理
+        async function handleBigFiveSubmit(event) {
+            event.preventDefault();
+
+            const submitButton = document.getElementById('submit-button');
+            const buttonText = submitButton.querySelector('.button-text');
+            
+            // ローディング状態に
+            submitButton.classList.add('loading');
+            submitButton.disabled = true;
+            buttonText.textContent = '送信中...';
+
+            try {
+                // 回答を取得
+                const answers = {};
+                tipiQuestions.forEach(q => {
+                    const checkedInput = document.querySelector(`input[name="${q.id}"]:checked`);
+                    if (checkedInput) {
+                        answers[q.id] = parseInt(checkedInput.value);
+                    }
+                });
+
+                // スコアを計算
+                const scores = {
+                    big5_openness: ((8 - answers.q10) + answers.q5) / 2,
+                    big5_conscientiousness: ((8 - answers.q8) + answers.q3) / 2,
+                    big5_extraversion: ((8 - answers.q6) + answers.q1) / 2,
+                    big5_agreeableness: ((8 - answers.q2) + answers.q7) / 2,
+                    big5_neuroticism: ((8 - answers.q9) + answers.q4) / 2,
+                    onboarding_complete: true
+                };
+
+                console.log('計算されたスコア:', scores);
+
+                // APIに送信
+                const response = await fetch('http://127.0.0.1:8000/api/accounts/profile/', {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(scores)
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        handleAuthError();
+                        return;
+                    }
+                    
+                    const errorData = await response.json().catch(() => null);
+                    console.error('エラーレスポンス:', errorData);
+                    throw new Error(`回答の送信に失敗しました。ステータス: ${response.status}`);
+                }
+
+                // 成功時の処理
+                buttonText.textContent = '送信完了！';
+                submitButton.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+
+                showSuccessMessage();
+                
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 2000);
+
+            } catch (error) {
+                console.error('BigFive送信エラー:', error);
+                showError('回答の送信中にエラーが発生しました。もう一度お試しください。');
+                
+                // ボタンを元に戻す
+                submitButton.classList.remove('loading');
+                submitButton.disabled = false;
+                buttonText.textContent = '回答を送信';
+                submitButton.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            }
+        }
+
+        // 成功メッセージ表示
+        function showSuccessMessage() {
+            surveyContentDiv.innerHTML = `
+                <div style="text-align: center; padding: 3rem;">
+                    <i class="fas fa-check-circle" style="font-size: 4rem; color: #28a745; margin-bottom: 1rem;"></i>
+                    <h2 style="color: #28a745; margin-bottom: 1rem;">ありがとうございます！</h2>
+                    <p style="font-size: 1.1rem; color: #666; margin-bottom: 2rem;">
+                        初期設定が完了しました。<br>
+                        ダッシュボードに移動します...
+                    </p>
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 完了メッセージ表示
+        function showCompletionMessage() {
+            surveyContentDiv.innerHTML = `
+                <div style="text-align: center; padding: 3rem;">
+                    <i class="fas fa-user-check" style="font-size: 4rem; color: #667eea; margin-bottom: 1rem;"></i>
+                    <h2 style="color: #667eea; margin-bottom: 1rem;">設定済みです</h2>
+                    <p style="font-size: 1.1rem; color: #666; margin-bottom: 2rem;">
+                        初期設定は既に完了しています。<br>
+                        ダッシュボードに移動します...
+                    </p>
+                    <div class="loading">
+                        <i class="fas fa-spinner"></i>
+                    </div>
+                </div>
+            `;
+        }
+
+        // エラー表示
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            if (errorDiv) {
+                const errorText = errorDiv.querySelector('.error-text');
+                errorText.textContent = message;
+                errorDiv.classList.add('show');
+                
+                setTimeout(() => {
+                    errorDiv.classList.remove('show');
+                }, 5000);
+            } else {
+                // エラー要素が存在しない場合は新しく作成
+                const newErrorDiv = document.createElement('div');
+                newErrorDiv.className = 'error show';
+                newErrorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+                surveyContentDiv.appendChild(newErrorDiv);
+            }
+        }
+
+        // 認証エラー処理
+        function handleAuthError() {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+            alert('セッションが期限切れです。再度ログインしてください。');
+            window.location.href = 'index.html';
+        }
+
+        // エラーハンドリング
+        window.addEventListener('error', function(e) {
+            console.error('JavaScript エラー:', e.error);
+            showError('予期しないエラーが発生しました。ページを再読み込みしてください。');
+        });
+    </script>
 </body>
 </html>
