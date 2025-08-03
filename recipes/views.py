@@ -8,7 +8,7 @@ from django.db.models.functions import Abs, Coalesce
 from .models import Recipe
 from .serializers import RecipeSerializer
 from meals.models import MealItem
-
+from .optimization import optimize_meal_plan # 作成した最適化エンジンをインポート
 
 class SuggestRecipeView(APIView):
     """
@@ -105,3 +105,127 @@ class SuggestRecipeView(APIView):
             "suggestions": serializer.data
         }
         return Response(response_data)
+    
+
+class OptimizedPlanView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        profile = user.userprofile
+        
+        # (ここでは簡略化のため、1日の目標をそのまま渡す)
+        targets = {
+            'protein': profile.target_protein or 70,
+            'fat': profile.target_fat or 60,
+            'carbohydrate': profile.target_carbohydrate or 250,
+        }
+
+        plan, message = optimize_meal_plan(targets)
+
+        if plan is not None:
+            serializer = RecipeSerializer([item['recipe'] for item in plan], many=True)
+            
+            # レシピ情報に、食べるべき量(quantity)を追加して返す
+            response_data = []
+            for i, recipe_data in enumerate(serializer.data):
+                recipe_data['recommended_quantity'] = plan[i]['quantity']
+                response_data.append(recipe_data)
+
+            return Response({
+                "message": message,
+                "plan": response_data
+            })
+        else:
+            return Response({"error": message}, status=status.HTTP_404_NOT_FOUND)
+
+
+
+
+class DinnerSuggestionView(APIView):
+    """
+    データベースに記録された、その日の朝食と昼食の情報を元に、
+    夜ご飯に最適な献立を提案するAPIビュー。
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request): # POSTからGETに変更
+        user = request.user
+        profile = user.userprofile
+        today = timezone.now().date()
+
+        # 1. 今日の「朝食」と「昼食」の記録をデータベースから取得
+        consumed_items = MealItem.objects.filter(
+            meal__user=user,
+            meal__recorded_at__date=today,
+            meal__meal_type__in=['breakfast', 'lunch']
+        )
+        
+        # 2. 食べたものの栄養素を合計する
+        consumed_nutrients = consumed_items.aggregate(
+            protein=Sum('protein'),
+            fat=Sum('fat'),
+            carbohydrates=Sum('carbohydrates')
+        )
+        
+        # 3. 1日の目標値から、食べた分を差し引き、「夜ご飯で摂るべき栄養素」を計算
+        remaining_targets = {
+            'protein': (profile.target_protein or 70) - (consumed_nutrients.get('protein') or 0),
+            'fat': (profile.target_fat or 60) - (consumed_nutrients.get('fat') or 0),
+            'carbohydrate': (profile.target_carbohydrate or 250) - (consumed_nutrients.get('carbohydrate') or 0),
+        }
+
+        # 4. 「夜ご飯の目標」に最も近いレシピを探す (SuggestRecipeViewのロジックを応用)
+        if remaining_targets['protein'] > 10: # タンパク質が10g以上不足している場合
+            suggested_recipes = Recipe.objects.annotate(
+                diff=Abs(F('total_protein') - remaining_targets['protein'])
+            ).order_by('diff')[:3]
+            message = f"夜ご飯でタンパク質を約{int(remaining_targets['protein'])}g摂るのがおすすめです。"
+        else:
+            suggested_recipes = Recipe.objects.order_by('total_calories')[:3]
+            message = "順調ですね！夜ご飯は軽めにいかがですか？"
+
+        serializer = RecipeSerializer(suggested_recipes, many=True)
+        return Response({
+            "message": message,
+            "remaining_targets": remaining_targets,
+            "suggestions": serializer.data
+        })
+    
+
+#
+
+# ... (SuggestRecipeViewはそのまま) ...
+
+# --- ★ここから新しいAPIビューを追加 ---
+class OptimizedPlanView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        profile = user.userprofile
+        
+        # (ここでは簡略化のため、1日の目標をそのまま渡す)
+        targets = {
+            'protein': profile.target_protein or 70,
+            'fat': profile.target_fat or 60,
+            'carbohydrate': profile.target_carbohydrate or 250,
+        }
+
+        plan, message = optimize_meal_plan(targets)
+
+        if plan is not None:
+            serializer = RecipeSerializer([item['recipe'] for item in plan], many=True)
+            
+            # レシピ情報に、食べるべき量(quantity)を追加して返す
+            response_data = []
+            for i, recipe_data in enumerate(serializer.data):
+                recipe_data['recommended_quantity'] = plan[i]['quantity']
+                response_data.append(recipe_data)
+
+            return Response({
+                "message": message,
+                "plan": response_data
+            })
+        else:
+            return Response({"error": message}, status=status.HTTP_404_NOT_FOUND)

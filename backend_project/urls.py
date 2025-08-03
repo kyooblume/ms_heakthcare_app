@@ -19,6 +19,7 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from django.views.generic import TemplateView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -27,7 +28,7 @@ from rest_framework_simplejwt.views import (
 urlpatterns = [
     # 管理画面用のURL
     path('admin/', admin.site.urls),
-
+    path('', TemplateView.as_view(template_name='index.html'), name='home'),
     # 私たちが作成したAPI用のURL
     path('api/accounts/', include('accounts.urls')),
     path('api/auth/', include('accounts.urls', namespace='accounts')),
