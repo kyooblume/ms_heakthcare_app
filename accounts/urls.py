@@ -5,6 +5,10 @@ from rest_framework.routers import DefaultRouter # ← ルーターをインポ�
 from .views import UserRegistrationView, UserProfileView, UserDeviceViewSet, PasswordChangeView, RecommendedIntakeView,UserOnboardingStatusView
 app_name = 'accounts'
 from .views import UserProfileView, UserOnboardingStatusView
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 # --- ルーターの設定 ---
 # DefaultRouterのインスタンスを作成
 router = DefaultRouter()
@@ -19,7 +23,8 @@ urlpatterns = [
     path('change-password/', PasswordChangeView.as_view(), name='change-password'),
     path('profile/calculate-targets/', RecommendedIntakeView.as_view(), name='calculate-targets'),
     path('onboarding-status/', UserOnboardingStatusView.as_view(), name='onboarding-status'),
-    
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+
 
     
     # ★ルーターが自動生成したURLを、この場所に追加

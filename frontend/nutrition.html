@@ -55,6 +55,244 @@
             padding: 0 2rem;
         }
 
+        /* 最適化ボタンを追加 */
+        .optimization-buttons {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-optimize {
+            padding: 0.7rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-optimize:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-optimize:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-manual {
+            background: linear-gradient(45deg, #28a745, #20c997);
+        }
+
+        /* 手入力モーダル */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+
+        .close:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .modal-body {
+            padding: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #28a745;
+            box-shadow: 0 0 10px rgba(40, 167, 69, 0.2);
+        }
+
+        .meal-type-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .meal-type-btn {
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            background: white;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .meal-type-btn:hover {
+            border-color: #28a745;
+            transform: translateY(-2px);
+        }
+
+        .meal-type-btn.active {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border-color: #28a745;
+        }
+
+        .meal-type-btn i {
+            font-size: 1.5rem;
+        }
+
+        .nutrition-inputs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .nutrition-input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem;
+            background: rgba(40, 167, 69, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(40, 167, 69, 0.2);
+        }
+
+        .nutrition-input-group label {
+            font-size: 0.9rem;
+            color: #28a745;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .nutrition-input-group input {
+            width: 80px;
+            text-align: center;
+            border: 1px solid #28a745;
+            border-radius: 5px;
+            padding: 0.5rem;
+        }
+
+        .modal-footer {
+            padding: 1.5rem 2rem;
+            background: #f8f9fa;
+            border-radius: 0 0 20px 20px;
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
         .nutrition-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -148,6 +386,15 @@
             margin: 1rem 0;
         }
 
+        .success {
+            color: #28a745;
+            text-align: center;
+            padding: 1rem;
+            background: rgba(40, 167, 69, 0.1);
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+
         .nutrition-summary {
             background: rgba(255, 255, 255, 0.95);
             border-radius: 15px;
@@ -214,6 +461,19 @@
             .recipe-nutrients {
                 grid-template-columns: repeat(2, 1fr);
             }
+
+            .modal-content {
+                margin: 2% auto;
+                width: 95%;
+            }
+
+            .modal-body {
+                padding: 1.5rem;
+            }
+
+            .nutrition-inputs {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
     </style>
 </head>
@@ -226,6 +486,16 @@
     </div>
 
     <div class="container">
+        <!-- 最適化ボタン -->
+        <div class="optimization-buttons">
+            <button class="btn-optimize" id="btnOptimizePlan">
+                <i class="fas fa-magic"></i> AI最適化プラン
+            </button>
+            <button class="btn-optimize btn-manual" id="btnManualInput">
+                <i class="fas fa-edit"></i> 手入力で記録
+            </button>
+        </div>
+
         <!-- 栄養サマリー -->
         <div class="nutrition-summary">
             <h3><i class="fas fa-chart-pie"></i> 今日の栄養サマリー</h3>
@@ -286,10 +556,99 @@
         </div>
     </div>
 
+    <!-- 手入力モーダル -->
+    <div id="manualInputModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-edit"></i> 食事を手入力で記録</h2>
+                <button class="close" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <!-- 食事タイプ選択 -->
+                <div class="form-group">
+                    <label class="form-label">食事の種類</label>
+                    <div class="meal-type-buttons">
+                        <div class="meal-type-btn" data-type="breakfast">
+                            <i class="fas fa-sun"></i>
+                            <span>朝食</span>
+                        </div>
+                        <div class="meal-type-btn" data-type="lunch">
+                            <i class="fas fa-cloud-sun"></i>
+                            <span>昼食</span>
+                        </div>
+                        <div class="meal-type-btn" data-type="dinner">
+                            <i class="fas fa-moon"></i>
+                            <span>夕食</span>
+                        </div>
+                        <div class="meal-type-btn" data-type="snack">
+                            <i class="fas fa-cookie-bite"></i>
+                            <span>間食</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 食べた物の名前 -->
+                <div class="form-group">
+                    <label class="form-label" for="mealName">
+                        <i class="fas fa-utensils"></i> 食べた物の名前
+                    </label>
+                    <input type="text" id="mealName" class="form-input" placeholder="例：チキンカレー、サラダ、コーヒーなど">
+                </div>
+
+                <!-- 栄養素入力 -->
+                <div class="form-group">
+                    <label class="form-label">栄養素 (わかる範囲で入力)</label>
+                    <div class="nutrition-inputs">
+                        <div class="nutrition-input-group">
+                            <label>カロリー</label>
+                            <input type="number" id="inputCalories" min="0" max="5000" placeholder="0">
+                            <small>kcal</small>
+                        </div>
+                        <div class="nutrition-input-group">
+                            <label>タンパク質</label>
+                            <input type="number" id="inputProtein" min="0" max="500" step="0.1" placeholder="0">
+                            <small>g</small>
+                        </div>
+                        <div class="nutrition-input-group">
+                            <label>脂質</label>
+                            <input type="number" id="inputFat" min="0" max="500" step="0.1" placeholder="0">
+                            <small>g</small>
+                        </div>
+                        <div class="nutrition-input-group">
+                            <label>炭水化物</label>
+                            <input type="number" id="inputCarbs" min="0" max="500" step="0.1" placeholder="0">
+                            <small>g</small>
+                        </div>
+                    </div>
+                    <small style="color: #666; display: block; margin-top: 0.5rem;">
+                        <i class="fas fa-info-circle"></i> 不明な項目は空欄でも構いません
+                    </small>
+                </div>
+
+                <!-- メモ -->
+                <div class="form-group">
+                    <label class="form-label" for="inputNotes">
+                        <i class="fas fa-sticky-note"></i> メモ（任意）
+                    </label>
+                    <textarea id="inputNotes" class="form-textarea" placeholder="食事についてのメモがあれば記入してください..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelInput">
+                    <i class="fas fa-times"></i> キャンセル
+                </button>
+                <button class="btn btn-primary" id="saveManualInput">
+                    <i class="fas fa-save"></i> 記録する
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // グローバル変数
         const token = localStorage.getItem('accessToken');
         let nutritionChart = null;
+        let selectedMealType = '';
 
         // DOM要素
         const elements = {
@@ -307,7 +666,20 @@
             fatProgress: document.getElementById('fat-progress'),
             carbActual: document.getElementById('carb-actual'),
             carbTarget: document.getElementById('carb-target'),
-            carbProgress: document.getElementById('carb-progress')
+            carbProgress: document.getElementById('carb-progress'),
+            btnOptimizePlan: document.getElementById('btnOptimizePlan'),
+            btnManualInput: document.getElementById('btnManualInput'),
+            manualInputModal: document.getElementById('manualInputModal'),
+            closeModal: document.getElementById('closeModal'),
+            cancelInput: document.getElementById('cancelInput'),
+            saveManualInput: document.getElementById('saveManualInput'),
+            mealTypeButtons: document.querySelectorAll('.meal-type-btn'),
+            mealName: document.getElementById('mealName'),
+            inputCalories: document.getElementById('inputCalories'),
+            inputProtein: document.getElementById('inputProtein'),
+            inputFat: document.getElementById('inputFat'),
+            inputCarbs: document.getElementById('inputCarbs'),
+            inputNotes: document.getElementById('inputNotes')
         };
 
         // 認証チェック
@@ -315,6 +687,27 @@
             alert('ログインが必要です。');
             window.location.href = 'index.html';
         }
+
+        // イベントリスナー設定
+        elements.btnOptimizePlan.addEventListener('click', fetchOptimizedPlan);
+        elements.btnManualInput.addEventListener('click', openManualInputModal);
+        elements.closeModal.addEventListener('click', closeManualInputModal);
+        elements.cancelInput.addEventListener('click', closeManualInputModal);
+        elements.saveManualInput.addEventListener('click', saveManualInput);
+
+        // 食事タイプ選択
+        elements.mealTypeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                selectMealType(btn.dataset.type);
+            });
+        });
+
+        // モーダル外クリックで閉じる
+        elements.manualInputModal.addEventListener('click', (e) => {
+            if (e.target === elements.manualInputModal) {
+                closeManualInputModal();
+            }
+        });
 
         // ページ読み込み時の処理
         document.addEventListener('DOMContentLoaded', function() {
@@ -330,8 +723,202 @@
                 ]);
             } catch (error) {
                 console.error('栄養ページの初期化エラー:', error);
-                showError('データの読み込みに失敗しました。');
+                showMessage('データの読み込みに失敗しました。', 'error');
             }
+        }
+
+        // 手入力モーダル開く
+        function openManualInputModal() {
+            elements.manualInputModal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            
+            // デフォルトで朝食を選択
+            selectMealType('breakfast');
+            
+            // フォームをリセット
+            resetManualForm();
+        }
+
+        // 手入力モーダル閉じる
+        function closeManualInputModal() {
+            elements.manualInputModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+            resetManualForm();
+        }
+
+        // 食事タイプ選択
+        function selectMealType(type) {
+            selectedMealType = type;
+            
+            elements.mealTypeButtons.forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.type === type) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // 手入力フォームリセット
+        function resetManualForm() {
+            elements.mealName.value = '';
+            elements.inputCalories.value = '';
+            elements.inputProtein.value = '';
+            elements.inputFat.value = '';
+            elements.inputCarbs.value = '';
+            elements.inputNotes.value = '';
+            selectedMealType = '';
+            
+            elements.mealTypeButtons.forEach(btn => {
+                btn.classList.remove('active');
+            });
+        }
+
+        // 手入力データ保存
+        async function saveManualInput() {
+            if (!selectedMealType) {
+                showMessage('食事の種類を選択してください。', 'error');
+                return;
+            }
+
+            if (!elements.mealName.value.trim()) {
+                showMessage('食べた物の名前を入力してください。', 'error');
+                return;
+            }
+
+            const calories = parseFloat(elements.inputCalories.value) || 0;
+            const protein = parseFloat(elements.inputProtein.value) || 0;
+            const fat = parseFloat(elements.inputFat.value) || 0;
+            const carbs = parseFloat(elements.inputCarbs.value) || 0;
+
+            if (calories === 0 && protein === 0 && fat === 0 && carbs === 0) {
+                if (!confirm('栄養素が入力されていませんが、記録しますか？')) {
+                    return;
+                }
+            }
+
+            elements.saveManualInput.disabled = true;
+            elements.saveManualInput.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 保存中...';
+
+            try {
+                const mealData = {
+                    meal_type: selectedMealType,
+                    name: elements.mealName.value.trim(),
+                    calories: calories,
+                    protein: protein,
+                    fat: fat,
+                    carbohydrates: carbs,
+                    notes: elements.inputNotes.value.trim() || ''
+                };
+
+                const response = await fetch('http://127.0.0.1:8000/api/meals/manual/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(mealData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || '食事の保存に失敗しました');
+                }
+
+                showMessage('食事を記録しました！', 'success');
+                closeManualInputModal();
+                
+                // データを再読み込み
+                await fetchDailyNutrition();
+
+            } catch (error) {
+                console.error('手入力保存エラー:', error);
+                showMessage(error.message || '食事の保存に失敗しました。', 'error');
+            } finally {
+                elements.saveManualInput.disabled = false;
+                elements.saveManualInput.innerHTML = '<i class="fas fa-save"></i> 記録する';
+            }
+        }
+
+        // 最適化プラン取得（新機能）
+        async function fetchOptimizedPlan() {
+            const btn = elements.btnOptimizePlan;
+            const originalText = btn.innerHTML;
+            
+            // ローディング状態
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 最適化中...';
+            
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/recipes/optimized-plan/?level=standard', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    throw new Error('最適化プランの取得失敗');
+                }
+
+                const data = await response.json();
+                console.log('最適化プラン:', data.plan);
+                console.log('達成率:', data.optimization_summary.achievement_rates);
+                console.log('総栄養素:', data.optimization_summary.total_nutrition);
+                
+                // 最適化プランを表示
+                displayOptimizedPlan(data);
+
+            } catch (error) {
+                console.error('最適化プラン取得エラー:', error);
+                showMessage('最適化プランの取得に失敗しました。通常の提案を表示します。', 'error');
+                // エラー時は通常の提案を取得
+                fetchRecipeSuggestions();
+            } finally {
+                // ボタンを元に戻す
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        // 最適化プラン表示
+        function displayOptimizedPlan(data) {
+            elements.suggestionMessage.innerHTML = '<i class="fas fa-brain"></i> AI最適化プラン <span style="background:#4caf50;color:white;padding:0.2rem 0.5rem;border-radius:10px;font-size:0.8rem;">最適化済み</span>';
+            
+            let html = '';
+            
+            if (data.plan && data.plan.length > 0) {
+                data.plan.forEach(recipe => {
+                    const quantity = recipe.recommended_quantity || 1;
+                    html += `
+                        <div class="recipe-card">
+                            <div class="recipe-title">${recipe.title || 'レシピ名'}</div>
+                            <div class="recipe-description">${recipe.description || ''}</div>
+                            <div style="background:rgba(76,175,80,0.1);padding:0.5rem;border-radius:5px;margin:0.5rem 0;font-size:0.9rem;">
+                                <i class="fas fa-balance-scale"></i> 推奨量: ${quantity.toFixed(1)}人分
+                            </div>
+                            <div class="recipe-nutrients">
+                                <div class="nutrient-item">
+                                    <div class="nutrient-value">${((recipe.total_calories || 0) * quantity).toFixed(0)}</div>
+                                    <div>kcal</div>
+                                </div>
+                                <div class="nutrient-item">
+                                    <div class="nutrient-value">${((recipe.total_protein || 0) * quantity).toFixed(1)}</div>
+                                    <div>P (g)</div>
+                                </div>
+                                <div class="nutrient-item">
+                                    <div class="nutrient-value">${((recipe.total_fat || 0) * quantity).toFixed(1)}</div>
+                                    <div>F (g)</div>
+                                </div>
+                                <div class="nutrient-item">
+                                    <div class="nutrient-value">${((recipe.total_carbohydrates || 0) * quantity).toFixed(1)}</div>
+                                    <div>C (g)</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                html = '<div class="error"><i class="fas fa-exclamation-circle"></i> 最適化プランの生成に失敗しました。</div>';
+            }
+            
+            elements.recipeSuggestions.innerHTML = html;
         }
 
         // 今日の栄養データ取得
@@ -484,6 +1071,7 @@
         // レシピ提案取得
         async function fetchRecipeSuggestions() {
             try {
+                console.log('APIリクエストに使うトークン:', token); 
                 const response = await fetch(`http://127.0.0.1:8000/api/recipes/suggestions/`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -508,13 +1096,13 @@
         }
 
         // レシピ提案表示
-        function displayRecipeSuggestions(data) {
+       function displayRecipeSuggestions(data) {
             elements.suggestionMessage.innerHTML = `<i class="fas fa-lightbulb"></i> ${data.message || '今日の献立提案'}`;
             
             let html = '';
             
-            if (data.recipes && data.recipes.length > 0) {
-                data.recipes.forEach(recipe => {
+            if (data.suggestions && data.suggestions.length > 0) {
+                data.suggestions.forEach(recipe => {
                     html += createRecipeCard(recipe);
                 });
             } else {
@@ -522,34 +1110,39 @@
             }
             
             elements.recipeSuggestions.innerHTML = html;
+
+            // デバッグ情報をコンソールに出力
+            console.log('栄養不足情報:', data.deficits);
+            console.log('目標値:', data.targets);
+            console.log('実際の摂取量:', data.actuals);
         }
 
         // フォールバックレシピ表示
         function displayFallbackRecipes() {
             const fallbackRecipes = [
                 {
-                    name: '鶏胸肉のグリル',
+                    title: '鶏胸肉のグリル',
                     description: 'ヘルシーなタンパク質源',
-                    calories: 200,
-                    protein: 35,
-                    fat: 5,
-                    carbohydrate: 2
+                    total_calories: 200,
+                    total_protein: 35,
+                    total_fat: 5,
+                    total_carbohydrates: 2
                 },
                 {
-                    name: '野菜サラダ',
+                    title: '野菜サラダ',
                     description: 'ビタミン・ミネラル豊富',
-                    calories: 50,
-                    protein: 2,
-                    fat: 1,
-                    carbohydrate: 10
+                    total_calories: 50,
+                    total_protein: 2,
+                    total_fat: 1,
+                    total_carbohydrates: 10
                 },
                 {
-                    name: '玄米ご飯',
+                    title: '玄米ご飯',
                     description: '良質な炭水化物',
-                    calories: 150,
-                    protein: 3,
-                    fat: 1,
-                    carbohydrate: 30
+                    total_calories: 150,
+                    total_protein: 3,
+                    total_fat: 1,
+                    total_carbohydrates: 30
                 }
             ];
 
@@ -565,36 +1158,50 @@
         function createRecipeCard(recipe) {
             return `
                 <div class="recipe-card">
-                    <div class="recipe-title">${recipe.name || recipe.title || 'レシピ名'}</div>
-                    <div class="recipe-description">${recipe.description || recipe.summary || ''}</div>
+                    <div class="recipe-title">${recipe.title || 'レシピ名'}</div>
+                    <div class="recipe-description">${recipe.description || ''}</div>
                     <div class="recipe-nutrients">
                         <div class="nutrient-item">
-                            <div class="nutrient-value">${recipe.calories || 0}</div>
+                            <div class="nutrient-value">${recipe.total_calories || 0}</div>
                             <div>kcal</div>
                         </div>
                         <div class="nutrient-item">
-                            <div class="nutrient-value">${recipe.protein || 0}</div>
+                            <div class="nutrient-value">${recipe.total_protein || 0}</div>
                             <div>P (g)</div>
                         </div>
                         <div class="nutrient-item">
-                            <div class="nutrient-value">${recipe.fat || 0}</div>
+                            <div class="nutrient-value">${recipe.total_fat || 0}</div>
                             <div>F (g)</div>
                         </div>
                         <div class="nutrient-item">
-                            <div class="nutrient-value">${recipe.carbohydrate || recipe.carbs || 0}</div>
+                            <div class="nutrient-value">${recipe.total_carbohydrates || 0}</div>
                             <div>C (g)</div>
                         </div>
                     </div>
                 </div>
             `;
-        }
+        }    
 
-        // エラー表示
-        function showError(message) {
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'error';
-            errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
-            document.querySelector('.container').insertBefore(errorDiv, document.querySelector('.nutrition-grid'));
+        // メッセージ表示
+        function showMessage(message, type) {
+            // 既存のメッセージを削除
+            const existingMessage = document.querySelector('.error, .success');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type;
+            messageDiv.innerHTML = `<i class="fas fa-${type === 'error' ? 'exclamation-triangle' : 'check-circle'}"></i> ${message}`;
+            
+            document.querySelector('.container').insertBefore(messageDiv, document.querySelector('.optimization-buttons'));
+            
+            // 3秒後に自動削除
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.remove();
+                }
+            }, 3000);
         }
 
         // 認証エラー処理
@@ -607,6 +1214,13 @@
         // エラーハンドリング
         window.addEventListener('error', function(e) {
             console.error('JavaScript エラー:', e.error);
+        });
+
+        // ESCキーでモーダルを閉じる
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && elements.manualInputModal.style.display === 'block') {
+                closeManualInputModal();
+            }
         });
     </script>
 </body>

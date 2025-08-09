@@ -8,6 +8,7 @@ from .models import UserProfile
 from health_records.models import HealthRecord
 from meals.models import Meal
 
+
 # --- 1. ユーザーページに「追加」したい情報を、種類ごとに専用のインラインとして定義 ---
 
 # UserProfile用のインライン (これは変更なし)
@@ -84,3 +85,4 @@ class CustomUserAdmin(BaseUserAdmin):
 # --- 3. 最後に、Djangoに新しいUserAdminを登録 (ここは変更なし) ---
 admin.site.unregister(User)
 admin.site.register(User, CustomUserAdmin)
+admin.site.register(UserProfile)
