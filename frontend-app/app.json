@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "frontend-app",
+    "slug": "frontend-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "main": "index.js",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.pian.msheakthcareapp"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

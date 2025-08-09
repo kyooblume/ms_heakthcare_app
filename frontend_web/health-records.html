@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>健康記録 - ヘルスケアダッシュボード</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 1.8rem;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .header-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .header-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            color: white;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .records-grid {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sync-panel {
+            position: sticky;
+            top: 2rem;
+        }
+
+        .sync-button {
+            width: 100%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 15px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .sync-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .sync-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .sync-status {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .sync-status.success {
+            background: rgba(76, 175, 80, 0.1);
+            color: #4caf50;
+        }
+
+        .sync-status.error {
+            background: rgba(244, 67, 54, 0.1);
+            color: #f44336;
+        }
+
+        .sync-status.info {
+            background: rgba(33, 150, 243, 0.1);
+            color: #2196f3;
+        }
+
+        .metric-tabs {
+            display: flex;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 15px;
+            padding: 0.5rem;
+            margin-bottom: 1rem;
+            overflow-x: auto;
+        }
+
+        .metric-tab {
+            flex: 1;
+            background: none;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            min-width: 100px;
+        }
+
+        .metric-tab.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .metric-tab:hover:not(.active) {
+            background: rgba(102, 126, 234, 0.2);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 1rem;
+        }
+
+        .records-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .records-table th,
+        .records-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .records-table th {
+            background: rgba(102, 126, 234, 0.1);
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .records-table tr:hover {
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .add-record-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .add-record-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            animation: modalFadeIn 0.3s ease;
+        }
+
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .close-modal {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #e9ecef;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 15px;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            color: #666;
+        }
+
+        .loading i {
+            animation: spin 1s linear infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #666;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            color: #ccc;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .header-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .records-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .sync-panel {
+                position: static;
+                order: -1;
+            }
+
+            .metric-tabs {
+                flex-direction: column;
+            }
+
+            .metric-tab {
+                text-align: center;
+            }
+
+            .modal-content {
+                margin: 10% auto;
+                width: 95%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-chart-line"></i> 健康記録</h1>
+        <div class="header-buttons">
+            <a href="dashboard.html" class="header-btn">
+                <i class="fas fa-home"></i> ダッシュボード
+            </a>
+            <button id="logout-button" class="header-btn">
+                <i class="fas fa-sign-out-alt"></i> ログアウト
+            </button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="records-grid">
+            <!-- メインコンテンツ -->
+            <div class="main-content">
+                <!-- メトリクス選択タブ -->
+                <div class="card">
+                    <h3><i class="fas fa-chart-bar"></i> 健康データ</h3>
+                    <div class="metric-tabs">
+                        <button class="metric-tab active" data-metric="weight">体重</button>
+                        <button class="metric-tab" data-metric="blood-pressure">血圧</button>
+                        <button class="metric-tab" data-metric="heart-rate">心拍数</button>
+                        <button class="metric-tab" data-metric="blood-glucose">血糖値</button>
+                        <button class="metric-tab" data-metric="body-fat">体脂肪率</button>
+                    </div>
+
+                    <button class="add-record-btn" id="add-record-btn">
+                        <i class="fas fa-plus"></i> 記録を追加
+                    </button>
+
+                    <!-- チャート表示エリア -->
+                    <div class="chart-container">
+                        <canvas id="healthChart"></canvas>
+                    </div>
+
+                    <!-- 統計情報 -->
+                    <div class="stats-grid" id="stats-grid">
+                        <!-- 動的に生成 -->
+                    </div>
+                </div>
+
+                <!-- 記録履歴テーブル -->
+                <div class="card">
+                    <h3><i class="fas fa-history"></i> 記録履歴</h3>
+                    <div id="records-table-container">
+                        <div class="loading">
+                            <i class="fas fa-spinner"></i>
+                            データを読み込み中...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- サイドパネル -->
+            <div class="sync-panel">
+                <!-- 同期パネル -->
+                <div class="card">
+                    <h3><i class="fas fa-sync"></i> データ同期</h3>
+                    <button class="sync-button" id="sync-healthkit">
+                        <i class="fas fa-mobile-alt"></i>
+                        HealthKit / Android Health から同期
+                    </button>
+                    <div id="sync-status" class="sync-status info" style="display: none;">
+                        <i class="fas fa-info-circle"></i>
+                        同期準備完了
+                    </div>
+                </div>
+
+                <!-- 目標設定 -->
+                <div class="card">
+                    <h3><i class="fas fa-target"></i> 目標設定</h3>
+                    <div class="form-group">
+                        <label>目標体重 (kg)</label>
+                        <input type="number" id="target-weight" step="0.1" placeholder="70.0">
+                    </div>
+                    <div class="form-group">
+                        <label>目標血圧 (上/下)</label>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <input type="number" id="target-systolic" placeholder="120">
+                            <input type="number" id="target-diastolic" placeholder="80">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" id="save-targets" style="width: 100%;">
+                        目標を保存
+                    </button>
+                </div>
+
+                <!-- 最新の記録 -->
+                <div class="card">
+                    <h3><i class="fas fa-clock"></i> 最新の記録</h3>
+                    <div id="latest-records">
+                        <div class="loading">
+                            <i class="fas fa-spinner"></i>
+                            読み込み中...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 記録追加モーダル -->
+    <div id="add-record-modal" class="modal">
+        <div class="modal-content">
+            <button class="close-modal" id="close-modal">&times;</button>
+            <h3 id="modal-title"><i class="fas fa-plus"></i> 記録を追加</h3>
+            
+            <form id="record-form">
+                <div class="form-group">
+                    <label for="metric-type">測定項目</label>
+                    <select id="metric-type" required>
+                        <option value="weight">体重 (kg)</option>
+                        <option value="blood-pressure">血圧 (mmHg)</option>
+                        <option value="heart-rate">心拍数 (bpm)</option>
+                        <option value="blood-glucose">血糖値 (mg/dL)</option>
+                        <option value="body-fat">体脂肪率 (%)</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="value-group">
+                    <label for="value">値</label>
+                    <input type="number" id="value" step="0.1" required>
+                </div>
+
+                <div class="form-group" id="blood-pressure-group" style="display: none;">
+                    <label>血圧値</label>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <input type="number" id="systolic" placeholder="収縮期 (上)">
+                        <input type="number" id="diastolic" placeholder="拡張期 (下)">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="recorded-at">測定日時</label>
+                    <input type="datetime-local" id="recorded-at" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="notes">メモ（任意）</label>
+                    <textarea id="notes" rows="3" placeholder="測定時の状況や気づいたことなど"></textarea>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="button" class="btn btn-secondary" id="cancel-btn">キャンセル</button>
+                    <button type="submit" class="btn btn-primary">記録を保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // グローバル変数
+        const token = localStorage.getItem('accessToken');
+        let currentMetric = 'weight';
+        let healthChart = null;
+        let healthRecords = {};
+
+        // 認証チェック
+        if (!token) {
+            alert('ログインが必要です。');
+            window.location.href = 'index.html';
+        }
+
+        // DOM要素
+        const elements = {
+            syncButton: document.getElementById('sync-healthkit'),
+            syncStatus: document.getElementById('sync-status'),
+            addRecordBtn: document.getElementById('add-record-btn'),
+            modal: document.getElementById('add-record-modal'),
+            closeModal: document.getElementById('close-modal'),
+            cancelBtn: document.getElementById('cancel-btn'),
+            recordForm: document.getElementById('record-form'),
+            metricType: document.getElementById('metric-type'),
+            valueGroup: document.getElementById('value-group'),
+            bloodPressureGroup: document.getElementById('blood-pressure-group'),
+            recordedAt: document.getElementById('recorded-at'),
+            logoutButton: document.getElementById('logout-button'),
+            statsGrid: document.getElementById('stats-grid'),
+            recordsTableContainer: document.getElementById('records-table-container'),
+            latestRecords: document.getElementById('latest-records'),
+            targetWeight: document.getElementById('target-weight'),
+            targetSystolic: document.getElementById('target-systolic'),
+            targetDiastolic: document.getElementById('target-diastolic'),
+            saveTargets: document.getElementById('save-targets')
+        };
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+            setupEventListeners();
+            setCurrentDateTime();
+        });
+
+        // ページ初期化
+        async function initializePage() {
+            try {
+                await Promise.all([
+                    loadHealthRecords(),
+                    loadTargets(),
+                    loadLatestRecords()
+                ]);
+                updateChart();
+                updateStatsGrid();
+                updateRecordsTable();
+            } catch (error) {
+                console.error('初期化エラー:', error);
+                showError('データの読み込みに失敗しました。');
+            }
+        }
+
+        // イベントリスナー設定
+        function setupEventListeners() {
+            // メトリクスタブ
+            document.querySelectorAll('.metric-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.metric-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    currentMetric = tab.dataset.metric;
+                    updateChart();
+                    updateStatsGrid();
+                    updateRecordsTable();
+                });
+            });
+
+            // モーダル関連
+            elements.addRecordBtn.addEventListener('click', () => openModal());
+            elements.closeModal.addEventListener('click', () => closeModal());
+            elements.cancelBtn.addEventListener('click', () => closeModal());
+            elements.modal.addEventListener('click', (e) => {
+                if (e.target === elements.modal) closeModal();
+            });
+
+            // フォーム関連
+            elements.metricType.addEventListener('change', handleMetricTypeChange);
+            elements.recordForm.addEventListener('submit', handleFormSubmit);
+
+            // 同期ボタン
+            elements.syncButton.addEventListener('click', syncHealthData);
+
+            // 目標保存
+            elements.saveTargets.addEventListener('click', saveTargets);
+
+            // ログアウト
+            elements.logoutButton.addEventListener('click', logout);
+        }
+
+        // 健康記録データ読み込み
+        async function loadHealthRecords() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/health-records/', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    healthRecords = groupRecordsByMetric(data);
+                } else {
+                    console.log('健康記録APIが利用できません - デモデータを使用');
+                    healthRecords = generateDemoData();
+                }
+            } catch (error) {
+                console.error('健康記録取得エラー:', error);
+                healthRecords = generateDemoData();
+            }
+        }
+
+        // デモデータ生成
+        function generateDemoData() {
+            const now = new Date();
+            const data = {
+                weight: [],
+                'blood-pressure': [],
+                'heart-rate': [],
+                'blood-glucose': [],
+                'body-fat': []
+            };
+
+            // 過去30日のサンプルデータ
+            for (let i = 30; i >= 0; i--) {
+                const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+                
+                if (Math.random() > 0.7) { // ランダムに記録
+                    data.weight.push({
+                        id: `w${i}`,
+                        value: 70 + Math.random() * 10 - 5,
+                        recorded_at: date.toISOString(),
+                        notes: i === 0 ? '今朝の測定' : ''
+                    });
+                }
+                
+                if (Math.random() > 0.8) {
+                    data['blood-pressure'].push({
+                        id: `bp${i}`,
+                        systolic: 120 + Math.random() * 20 - 10,
+                        diastolic: 80 + Math.random() * 10 - 5,
+                        recorded_at: date.toISOString()
+                    });
+                }
+                
+                if (Math.random() > 0.85) {
+                    data['heart-rate'].push({
+                        id: `hr${i}`,
+                        value: 70 + Math.random() * 30,
+                        recorded_at: date.toISOString()
+                    });
+                }
+            }
+
+            return data;
+        }
+
+        // 記録をメトリック別にグループ化
+        function groupRecordsByMetric(records) {
+            const grouped = {
+                weight: [],
+                'blood-pressure': [],
+                'heart-rate': [],
+                'blood-glucose': [],
+                'body-fat': []
+            };
+
+            records.forEach(record => {
+                if (grouped[record.metric_type]) {
+                    grouped[record.metric_type].push(record);
+                }
+            });
+
+            return grouped;
+        }
+
+        // チャート更新
+        function updateChart() {
+            const ctx = document.getElementById('healthChart').getContext('2d');
+            
+            if (healthChart) {
+                healthChart.destroy();
+            }
+
+            const records = healthRecords[currentMetric] || [];
+            const sortedRecords = records.sort((a, b) => new Date(a.recorded_at) - new Date(b.recorded_at));
+
+            let chartData, chartOptions;
+
+            if (currentMetric === 'blood-pressure') {
+                chartData = {
+                    labels: sortedRecords.map(r => new Date(r.recorded_at).toLocaleDateString('ja-JP', {
+                        month: 'numeric',
+                        day: 'numeric'
+                    })),
+                    datasets: [
+                        {
+                            label: '収縮期血圧',
+                            data: sortedRecords.map(r => r.systolic),
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            fill: false,
+                            tension: 0.4
+                        },
+                        {
+                            label: '拡張期血圧',
+                            data: sortedRecords.map(r => r.diastolic),
+                            borderColor: '#f093fb',
+                            backgroundColor: 'rgba(240, 147, 251, 0.1)',
+                            fill: false,
+                            tension: 0.4
+                        }
+                    ]
+                };
+            } else {
+                chartData = {
+                    labels: sortedRecords.map(r => new Date(r.recorded_at).toLocaleDateString('ja-JP', {
+                        month: 'numeric',
+                        day: 'numeric'
+                    })),
+                    datasets: [{
+                        label: getMetricLabel(currentMetric),
+                        data: sortedRecords.map(r => r.value),
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                };
+            }
+
+            chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: false }
+                },
+                plugins: {
+                    legend: { position: 'top' }
+                }
+            };
+
+            healthChart = new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: chartOptions
+            });
+        }
+
+        // 統計情報更新
+        function updateStatsGrid() {
+            const records = healthRecords[currentMetric] || [];
+            let stats = {};
+
+            if (currentMetric === 'blood-pressure') {
+                const systolicValues = records.map(r => r.systolic).filter(v => v);
+                const diastolicValues = records.map(r => r.diastolic).filter(v => v);
+                
+                stats = {
+                    '最新の収縮期': systolicValues.length ? systolicValues[systolicValues.length - 1].toFixed(0) + ' mmHg' : '-',
+                    '最新の拡張期': diastolicValues.length ? diastolicValues[diastolicValues.length - 1].toFixed(0) + ' mmHg' : '-',
+                    '平均収縮期': systolicValues.length ? (systolicValues.reduce((a, b) => a + b, 0) / systolicValues.length).toFixed(0) + ' mmHg' : '-',
+                    '平均拡張期': diastolicValues.length ? (diastolicValues.reduce((a, b) => a + b, 0) / diastolicValues.length).toFixed(0) + ' mmHg' : '-'
+                };
+            } else {
+                const values = records.map(r => r.value).filter(v => v);
+                const unit = getMetricUnit(currentMetric);
+                
+                stats = {
+                    '最新値': values.length ? values[values.length - 1].toFixed(1) + ' ' + unit : '-',
+                    '平均値': values.length ? (values.reduce((a, b) => a + b, 0) / values.length).toFixed(1) + ' ' + unit : '-',
+                    '最高値': values.length ? Math.max(...values).toFixed(1) + ' ' + unit : '-',
+                    '最低値': values.length ? Math.min(...values).toFixed(1) + ' ' + unit : '-'
+                };
+            }
+
+            elements.statsGrid.innerHTML = Object.entries(stats).map(([label, value]) => `
+                <div class="stat-item">
+                    <div class="stat-value">${value}</div>
+                    <div class="stat-label">${label}</div>
+                </div>
+            `).join('');
+        }
+
+        // 記録テーブル更新
+        function updateRecordsTable() {
+            const records = healthRecords[currentMetric] || [];
+            
+            if (records.length === 0) {
+                elements.recordsTableContainer.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h4>記録がありません</h4>
+                        <p>「記録を追加」ボタンから新しい記録を追加しましょう</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const sortedRecords = records.sort((a, b) => new Date(b.recorded_at) - new Date(a.recorded_at));
+            
+            let tableHTML = `
+                <table class="records-table">
+                    <thead>
+                        <tr>
+                            <th>日時</th>
+                            <th>値</th>
+                            <th>メモ</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            sortedRecords.forEach(record => {
+                const date = new Date(record.recorded_at);
+                const dateStr = date.toLocaleDateString('ja-JP', {
+                    year: 'numeric',
+                    month: 'numeric',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                let valueStr;
+                if (currentMetric === 'blood-pressure') {
+                    valueStr = `${record.systolic}/${record.diastolic} mmHg`;
+                } else {
+                    valueStr = `${record.value} ${getMetricUnit(currentMetric)}`;
+                }
+
+                tableHTML += `
+                    <tr>
+                        <td>${dateStr}</td>
+                        <td>${valueStr}</td>
+                        <td>${record.notes || '-'}</td>
+                        <td>
+                            <button class="btn btn-secondary" onclick="editRecord('${record.id}')" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-secondary" onclick="deleteRecord('${record.id}')" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-left: 0.5rem; background: #f44336; color: white;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tableHTML += '</tbody></table>';
+            elements.recordsTableContainer.innerHTML = tableHTML;
+        }
+
+        // 最新記録読み込み
+        async function loadLatestRecords() {
+            const latestData = [];
+            
+            Object.entries(healthRecords).forEach(([metric, records]) => {
+                if (records.length > 0) {
+                    const latest = records.sort((a, b) => new Date(b.recorded_at) - new Date(a.recorded_at))[0];
+                    latestData.push({
+                        metric,
+                        record: latest,
+                        label: getMetricLabel(metric)
+                    });
+                }
+            });
+
+            if (latestData.length === 0) {
+                elements.latestRecords.innerHTML = `
+                    <div class="empty-state" style="padding: 1rem;">
+                        <i class="fas fa-heartbeat"></i>
+                        <p>記録がありません</p>
+                    </div>
+                `;
+                return;
+            }
+
+            elements.latestRecords.innerHTML = latestData.map(item => {
+                const date = new Date(item.record.recorded_at);
+                const dateStr = date.toLocaleDateString('ja-JP', { month: 'numeric', day: 'numeric' });
+                
+                let valueStr;
+                if (item.metric === 'blood-pressure') {
+                    valueStr = `${item.record.systolic}/${item.record.diastolic}`;
+                } else {
+                    valueStr = item.record.value.toFixed(1);
+                }
+
+                return `
+                    <div class="stat-item">
+                        <div class="stat-value">${valueStr}</div>
+                        <div class="stat-label">${item.label} (${dateStr})</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 目標読み込み
+        async function loadTargets() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/accounts/profile/', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    elements.targetWeight.value = data.target_weight || '';
+                    elements.targetSystolic.value = data.target_systolic || '120';
+                    elements.targetDiastolic.value = data.target_diastolic || '80';
+                }
+            } catch (error) {
+                console.error('目標取得エラー:', error);
+            }
+        }
+
+        // 目標保存
+        async function saveTargets() {
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/accounts/profile/', {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        target_weight: parseFloat(elements.targetWeight.value) || null,
+                        target_systolic: parseInt(elements.targetSystolic.value) || null,
+                        target_diastolic: parseInt(elements.targetDiastolic.value) || null
+                    })
+                });
+                
+                if (response.ok) {
+                    showSyncStatus('目標を保存しました', 'success');
+                } else {
+                    throw new Error('保存失敗');
+                }
+            } catch (error) {
+                console.error('目標保存エラー:', error);
+                showSyncStatus('目標の保存に失敗しました', 'error');
+            }
+        }
+
+        // ヘルスデータ同期
+        async function syncHealthData() {
+            elements.syncButton.disabled = true;
+            elements.syncButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 同期中...';
+            showSyncStatus('デバイスからデータを同期しています...', 'info');
+
+            try {
+                // HealthKit/Android Health APIの実装はここに入る
+                // 現在はシミュレーション
+                await simulateHealthDataSync();
+                
+                await loadHealthRecords();
+                updateChart();
+                updateStatsGrid();
+                updateRecordsTable();
+                await loadLatestRecords();
+                
+                showSyncStatus('同期が完了しました', 'success');
+            } catch (error) {
+                console.error('同期エラー:', error);
+                showSyncStatus('同期に失敗しました', 'error');
+            } finally {
+                elements.syncButton.disabled = false;
+                elements.syncButton.innerHTML = '<i class="fas fa-mobile-alt"></i> HealthKit / Android Health から同期';
+            }
+        }
+
+        // ヘルスデータ同期シミュレーション
+        async function simulateHealthDataSync() {
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    // 新しいデータを追加（シミュレーション）
+                    const now = new Date();
+                    if (Math.random() > 0.5) {
+                        healthRecords.weight.push({
+                            id: `sync_w_${Date.now()}`,
+                            value: 70 + Math.random() * 5,
+                            recorded_at: now.toISOString(),
+                            notes: 'HealthKitから同期'
+                        });
+                    }
+                    if (Math.random() > 0.7) {
+                        healthRecords['heart-rate'].push({
+                            id: `sync_hr_${Date.now()}`,
+                            value: 70 + Math.random() * 20,
+                            recorded_at: now.toISOString(),
+                            notes: 'デバイスから自動同期'
+                        });
+                    }
+                    resolve();
+                }, 2000);
+            });
+        }
+
+        // モーダル開く
+        function openModal(recordId = null) {
+            elements.modal.style.display = 'block';
+            elements.metricType.value = currentMetric;
+            handleMetricTypeChange();
+            setCurrentDateTime();
+            
+            if (recordId) {
+                // 編集モードの場合の実装
+                loadRecordForEdit(recordId);
+            }
+        }
+
+        // モーダル閉じる
+        function closeModal() {
+            elements.modal.style.display = 'none';
+            elements.recordForm.reset();
+        }
+
+        // メトリック種別変更処理
+        function handleMetricTypeChange() {
+            const metricType = elements.metricType.value;
+            
+            if (metricType === 'blood-pressure') {
+                elements.valueGroup.style.display = 'none';
+                elements.bloodPressureGroup.style.display = 'block';
+            } else {
+                elements.valueGroup.style.display = 'block';
+                elements.bloodPressureGroup.style.display = 'none';
+                
+                // 単位をプレースホルダーに表示
+                const input = document.getElementById('value');
+                input.placeholder = `例: 70.5 (${getMetricUnit(metricType)})`;
+            }
+        }
+
+        // フォーム送信処理
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            const metricType = elements.metricType.value;
+            const recordedAt = elements.recordedAt.value;
+            const notes = document.getElementById('notes').value;
+
+            let recordData = {
+                metric_type: metricType,
+                recorded_at: recordedAt,
+                notes: notes
+            };
+
+            if (metricType === 'blood-pressure') {
+                recordData.systolic = parseFloat(document.getElementById('systolic').value);
+                recordData.diastolic = parseFloat(document.getElementById('diastolic').value);
+            } else {
+                recordData.value = parseFloat(document.getElementById('value').value);
+            }
+
+            try {
+                await saveHealthRecord(recordData);
+                closeModal();
+                await loadHealthRecords();
+                updateChart();
+                updateStatsGrid();
+                updateRecordsTable();
+                await loadLatestRecords();
+                showSyncStatus('記録を保存しました', 'success');
+            } catch (error) {
+                console.error('記録保存エラー:', error);
+                showSyncStatus('記録の保存に失敗しました', 'error');
+            }
+        }
+
+        // 健康記録保存
+        async function saveHealthRecord(recordData) {
+            // APIが利用可能な場合の実装
+            try {
+                const response = await fetch('http://127.0.0.1:8000/api/health-records/', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(recordData)
+                });
+                
+                if (!response.ok) throw new Error('API保存失敗');
+            } catch (error) {
+                console.log('APIが利用できません - ローカルに保存');
+                // ローカル保存（デモ用）
+                recordData.id = `local_${Date.now()}`;
+                if (!healthRecords[recordData.metric_type]) {
+                    healthRecords[recordData.metric_type] = [];
+                }
+                healthRecords[recordData.metric_type].push(recordData);
+            }
+        }
+
+        // 記録編集
+        function editRecord(recordId) {
+            // 実装予定
+            console.log('Edit record:', recordId);
+        }
+
+        // 記録削除
+        async function deleteRecord(recordId) {
+            if (!confirm('この記録を削除しますか？')) return;
+            
+            try {
+                // API削除を試す
+                const response = await fetch(`http://127.0.0.1:8000/api/health-records/${recordId}/`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!response.ok) throw new Error('API削除失敗');
+            } catch (error) {
+                console.log('APIが利用できません - ローカルから削除');
+                // ローカル削除
+                Object.keys(healthRecords).forEach(metric => {
+                    healthRecords[metric] = healthRecords[metric].filter(r => r.id !== recordId);
+                });
+            }
+            
+            updateChart();
+            updateStatsGrid();
+            updateRecordsTable();
+            await loadLatestRecords();
+            showSyncStatus('記録を削除しました', 'success');
+        }
+
+        // 現在日時設定
+        function setCurrentDateTime() {
+            const now = new Date();
+            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+                .toISOString().slice(0, 16);
+            elements.recordedAt.value = localDateTime;
+        }
+
+        // メトリックラベル取得
+        function getMetricLabel(metric) {
+            const labels = {
+                'weight': '体重',
+                'blood-pressure': '血圧',
+                'heart-rate': '心拍数',
+                'blood-glucose': '血糖値',
+                'body-fat': '体脂肪率'
+            };
+            return labels[metric] || metric;
+        }
+
+        // メトリック単位取得
+        function getMetricUnit(metric) {
+            const units = {
+                'weight': 'kg',
+                'heart-rate': 'bpm',
+                'blood-glucose': 'mg/dL',
+                'body-fat': '%'
+            };
+            return units[metric] || '';
+        }
+
+        // 同期ステータス表示
+        function showSyncStatus(message, type) {
+            elements.syncStatus.style.display = 'block';
+            elements.syncStatus.className = `sync-status ${type}`;
+            
+            const icon = type === 'success' ? 'check-circle' : 
+                        type === 'error' ? 'exclamation-triangle' : 'info-circle';
+            
+            elements.syncStatus.innerHTML = `<i class="fas fa-${icon}"></i> ${message}`;
+            
+            // 3秒後に非表示
+            setTimeout(() => {
+                elements.syncStatus.style.display = 'none';
+            }, 3000);
+        }
+
+        // エラー表示
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'sync-status error';
+            errorDiv.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+            document.querySelector('.container').insertBefore(errorDiv, document.querySelector('.records-grid'));
+            
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+
+        // ログアウト
+        function logout() {
+            localStorage.removeItem('accessToken');
+            alert('ログアウトしました。');
+            window.location.href = 'index.html';
+        }
+
+        // 認証エラー処理
+        function handleAuthError() {
+            localStorage.removeItem('accessToken');
+            alert('セッションが期限切れです。再度ログインしてください。');
+            window.location.href = 'index.html';
+        }
+
+        // エラーハンドリング
+        window.addEventListener('error', function(e) {
+            console.error('JavaScript エラー:', e.error);
+        });
+
+        // ESCキーでモーダルを閉じる
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && elements.modal.style.display === 'block') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

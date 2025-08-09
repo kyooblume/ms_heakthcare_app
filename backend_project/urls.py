@@ -45,6 +45,7 @@ urlpatterns = [
     path('onboarding.html', TemplateView.as_view(template_name='onboarding.html'), name='onboarding'),
     path('dashboard.html', TemplateView.as_view(template_name='dashboard.html'), name='dashboard'),
     path('nutrition.html', TemplateView.as_view(template_name='nutrition.html'), name='nutrition'),
+    path('health-records.html', TemplateView.as_view(template_name='health-records.html'), name='health_records'),
     
 ]
     
